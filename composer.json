@@ -1,0 +1,25 @@
+{
+    "name": "danilocgsilva/entity-clone-cli",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Danilocgsilva\\EntityCloneCli\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Danilo Silva",
+            "email": "contact@danilocgsilva.me"
+        }
+    ],
+    "require": {
+        "symfony/console": "^8.1",
+        "danilocgsilva/entity-clone": "main-dev"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../package"
+        }
+    ]
+}
