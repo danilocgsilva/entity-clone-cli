@@ -19,7 +19,7 @@
     "repositories": [
         {
             "type": "path",
-            "url": "../package"
+            "url": "../entity-clone"
         }
     ]
 }

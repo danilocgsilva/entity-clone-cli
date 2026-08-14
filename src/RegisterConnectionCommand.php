@@ -9,6 +9,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Question\Question;
+use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
+use Danilocgsilva\EntityClone\EntityManagerFactory;
+use Doctrine\ORM\EntityManagerInterface;
 
 #[AsCommand(
     name: 'app:register-connection',
@@ -17,13 +20,13 @@ use Symfony\Component\Console\Question\Question;
 class RegisterConnectionCommand extends Command
 {
     private InputInterface $input;
-
     private OutputInterface $output;
     
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->input = $input;
         $this->output = $output;
+        
         /** @var \Symfony\Component\Console\Helper\QuestionHelper */
         $helper = $this->getHelper('question');
 
@@ -75,6 +78,28 @@ class RegisterConnectionCommand extends Command
             'Database: <comment>' . $databaseName . '</comment>',
             'Port: <comment>' . $port . '</comment>',
         ]);
+
+        $entityManager = EntityManagerFactory::create(
+            projectRoot: __DIR__ . '/..',
+            entityPaths: [__DIR__ . '/../src/Entities'],
+        );
+
+        $databaseAccess = new DatabaseAccess()
+            ->setHost($host)
+            ->setUser($user)
+            ->setPassword($password)
+            ->setDatabaseName($databaseName)
+            ->setPort((int)$port);
+
+        try {
+            $entityManager->persist($databaseAccess);
+            $entityManager->flush();
+            
+            $output->writeln('<info>Database connection registered successfully with ID: ' . $databaseAccess->getId() . '</info>');
+        } catch (\Exception $e) {
+            $output->writeln('<error>Error saving connection: ' . $e->getMessage() . '</error>');
+            return Command::FAILURE;
+        }
 
         return Command::SUCCESS;
     }
