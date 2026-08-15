@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Danilocgsilva\EntityCloneCli;
 
 use Symfony\Component\Console\Attribute\AsCommand;

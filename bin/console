@@ -7,12 +7,13 @@ use Danilocgsilva\EntityCloneCli\GreetCommand;
 use Danilocgsilva\EntityCloneCli\ProposedTest;
 use Symfony\Component\Console\Application;
 use Danilocgsilva\EntityCloneCli\RegisterConnectionCommand;
+use Danilocgsilva\EntityCloneCli\ListConnectionsCommand;
 
 $application = new Application('My CLI App', '1.0.0');
 
 $application->addCommand(new GreetCommand());
-$application->addCommand(new ProposedTest());
 $application->addCommand(new RegisterConnectionCommand());
+$application->addCommand(new ListConnectionsCommand());
 
 $application->run();
 
