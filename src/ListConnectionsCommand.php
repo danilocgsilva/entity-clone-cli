@@ -41,6 +41,7 @@ class ListConnectionsCommand extends Command
             foreach ($databaseAccesses as $dbAccess) {
                 $tableRows[] = [
                     $dbAccess->getId(),
+                    $dbAccess->getName(),
                     $dbAccess->getHost(),
                     $dbAccess->getUser(),
                     $dbAccess->getDatabaseName(),
@@ -49,7 +50,7 @@ class ListConnectionsCommand extends Command
             }
 
             $io->table(
-                ['ID', 'Host', 'User', 'Database', 'Port'],
+                ['ID', 'Name', 'Host', 'User', 'Database', 'Port'],
                 $tableRows
             );
 

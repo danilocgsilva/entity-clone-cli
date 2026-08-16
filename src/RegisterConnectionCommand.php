@@ -32,6 +32,15 @@ class RegisterConnectionCommand extends Command
         /** @var \Symfony\Component\Console\Helper\QuestionHelper */
         $helper = $this->getHelper('question');
 
+        $connectionNameQuestion = new Question('Enter the connection name to make it more eansily identifiable: ');
+        $connectionNameQuestion->setValidator(function ($value) {
+            if (empty(trim($value))) {
+                throw new \Exception('Yiu must define a name for connection.');
+            }
+            return trim($value);
+        });
+        $connectionName = $helper->ask($input, $output, $connectionNameQuestion);
+
         $hostQuestion = new Question('Enter the host: ');
         $hostQuestion->setValidator(function ($value) {
             if (empty(trim($value))) {
@@ -87,6 +96,7 @@ class RegisterConnectionCommand extends Command
         );
 
         $databaseAccess = new DatabaseAccess()
+            ->setName($connectionName)
             ->setHost($host)
             ->setUser($user)
             ->setPassword($password)
