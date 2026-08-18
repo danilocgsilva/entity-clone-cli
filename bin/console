@@ -7,12 +7,14 @@ use Symfony\Component\Console\Application;
 use Danilocgsilva\EntityCloneCli\RegisterConnectionCommand;
 use Danilocgsilva\EntityCloneCli\ListFieldsCommand;
 use Danilocgsilva\EntityCloneCli\ListConnectionsCommand;
+use Danilocgsilva\EntityCloneCli\CloneRecordCommand;
 
 $application = new Application('My CLI App', '1.0.0');
 
 $application->addCommand(new RegisterConnectionCommand());
 $application->addCommand(new ListFieldsCommand());
 $application->addCommand(new ListConnectionsCommand());
+$application->addCommand(new CloneRecordCommand());
 
 $application->run();
 
