@@ -9,6 +9,7 @@ use Danilocgsilva\EntityCloneCli\ListFieldsCommand;
 use Danilocgsilva\EntityCloneCli\ListConnectionsCommand;
 use Danilocgsilva\EntityCloneCli\CloneRecordCommand;
 use Danilocgsilva\EntityCloneCli\ListTablesCommand;
+use Danilocgsilva\EntityCloneCli\TestConnectionCommand;
 
 $application = new Application('My CLI App', '1.0.0');
 
@@ -17,6 +18,7 @@ $application->addCommand(new ListConnectionsCommand());
 $application->addCommand(new ListFieldsCommand());
 $application->addCommand(new ListTablesCommand());
 $application->addCommand(new RegisterConnectionCommand());
+$application->addCommand(new TestConnectionCommand());
 
 $application->run();
 

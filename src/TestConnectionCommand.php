@@ -29,12 +29,6 @@ class TestConnectionCommand extends Command
                 'c',
                 InputOption::VALUE_REQUIRED,
                 'Database connection ID'
-            )
-            ->addOption(
-                'database-name',
-                'd',
-                InputOption::VALUE_REQUIRED,
-                'Database name to test connection against'
             );
     }
 
@@ -46,15 +40,9 @@ class TestConnectionCommand extends Command
         try {
             // Get connection ID and database name from input
             $connectionId = (int) $input->getOption('connection-id');
-            $databaseName = $input->getOption('database-name');
 
             if (!$connectionId) {
                 $io->error('Connection ID is required. Use --connection-id or -c option.');
-                return Command::FAILURE;
-            }
-
-            if (!$databaseName) {
-                $io->error('Database name is required. Use --database-name or -d option.');
                 return Command::FAILURE;
             }
 
@@ -71,10 +59,10 @@ class TestConnectionCommand extends Command
             $connectionTestResult = Domain::testPdoConnection($pdo);
 
             if ($connectionTestResult) {
-                $io->success("PDO connection successful for database '{$databaseName}' (connection ID: {$connectionId}).");
+                $io->success("PDO connection successful (connection ID: {$connectionId}).");
                 return Command::SUCCESS;
             } else {
-                $io->error("PDO connection test failed for database '{$databaseName}' (connection ID: {$connectionId}).");
+                $io->error("PDO connection test failed (connection ID: {$connectionId}).");
                 return Command::FAILURE;
             }
 
