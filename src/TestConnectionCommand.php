@@ -38,11 +38,16 @@ class TestConnectionCommand extends Command
         $io->title('Database Connection Test');
 
         try {
-            // Get connection ID and database name from input
+            // Get connection ID from input
             $connectionId = (int) $input->getOption('connection-id');
 
             if (!$connectionId) {
-                $io->error('Connection ID is required. Use --connection-id or -c option.');
+                $io->warning('Connection ID was not provided.');
+                $connectionId = (int) $io->ask('Please enter the database connection ID:');
+            }
+
+            if (!$connectionId) {
+                $io->error('Connection ID is required.');
                 return Command::FAILURE;
             }
 
