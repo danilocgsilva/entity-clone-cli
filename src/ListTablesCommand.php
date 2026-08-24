@@ -48,14 +48,34 @@ class ListTablesCommand extends Command
             $connectionId = (int) $input->getOption('connection-id');
             $databaseName = $input->getOption('database-name');
 
+            // Prompt for connection ID if not provided
             if (!$connectionId) {
-                $io->error('Connection ID is required. Use --connection-id or -c option.');
-                return Command::FAILURE;
+                $connectionId = (int) $io->ask('Please enter the database connection ID', null, function ($value) {
+                    if (!is_numeric($value) || $value <= 0) {
+                        throw new \InvalidArgumentException('Connection ID must be a positive integer');
+                    }
+                    return (int) $value;
+                });
+                
+                if (!$connectionId) {
+                    $io->error('Connection ID is required.');
+                    return Command::FAILURE;
+                }
             }
 
+            // Prompt for database name if not provided
             if (!$databaseName) {
-                $io->error('Database name is required. Use --database-name or -d option.');
-                return Command::FAILURE;
+                $databaseName = $io->ask('Please enter the database name', null, function ($value) {
+                    if (empty(trim($value))) {
+                        throw new \InvalidArgumentException('Database name cannot be empty');
+                    }
+                    return trim($value);
+                });
+                
+                if (!$databaseName) {
+                    $io->error('Database name is required.');
+                    return Command::FAILURE;
+                }
             }
 
             // Create EntityManager
