@@ -4,19 +4,21 @@
 require dirname(__DIR__).'/vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
-use Danilocgsilva\EntityCloneCli\RegisterConnectionCommand;
+use Danilocgsilva\EntityCloneCli\CloneRecordCommand;
+use Danilocgsilva\EntityCloneCli\CompareTablesCommand;
+use Danilocgsilva\EntityCloneCli\DeleteConnectionCommand;
 use Danilocgsilva\EntityCloneCli\ListFieldsCommand;
 use Danilocgsilva\EntityCloneCli\ListConnectionsCommand;
-use Danilocgsilva\EntityCloneCli\CloneRecordCommand;
 use Danilocgsilva\EntityCloneCli\ListTablesCommand;
+use Danilocgsilva\EntityCloneCli\ListDatabasesCommand;
+use Danilocgsilva\EntityCloneCli\RegisterConnectionCommand;
 use Danilocgsilva\EntityCloneCli\TestConnectionCommand;
 use Danilocgsilva\EntityCloneCli\UpdateConnectionCommand;
-use Danilocgsilva\EntityCloneCli\DeleteConnectionCommand;
-use Danilocgsilva\EntityCloneCli\ListDatabasesCommand.
 
 $application = new Application('My CLI App', '1.0.0');
 
 $application->addCommand(new CloneRecordCommand());
+$application->addCommand(new CompareTablesCommand());
 $application->addCommand(new DeleteConnectionCommand());
 $application->addCommand(new ListConnectionsCommand());
 $application->addCommand(new ListFieldsCommand());
