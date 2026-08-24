@@ -6,10 +6,12 @@ namespace Danilocgsilva\EntityCloneCli;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Console\Question\Question;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\EntityManagerFactory;
 
@@ -48,24 +50,42 @@ class CompareTablesCommand extends Command
         $io->title('Database Tables Comparison');
 
         try {
-            // Get connection IDs and database name from input
+            // Get connection IDs and database name from input or prompt if missing
             $connectionId1 = (int) $input->getOption('connection-id-1');
             $connectionId2 = (int) $input->getOption('connection-id-2');
             $databaseName = $input->getOption('database-name');
 
-            // Validate required options
+            // Prompt for missing values
+            $helper = $this->getHelper('question');
+
             if (!$connectionId1) {
-                $io->error('First connection ID is required. Use --connection-id-1 or -c1 option.');
+                $question = new Question('Please enter the first connection ID: ');
+                $connectionId1 = (int) $helper->ask($input, $output, $question);
+            }
+
+            if (!$connectionId2) {
+                $question = new Question('Please enter the second connection ID: ');
+                $connectionId2 = (int) $helper->ask($input, $output, $question);
+            }
+
+            if (!$databaseName) {
+                $question = new Question('Please enter the database name to compare tables from: ');
+                $databaseName = $helper->ask($input, $output, $question);
+            }
+
+            // Validate required options after prompting
+            if (!$connectionId1) {
+                $io->error('First connection ID is required.');
                 return Command::FAILURE;
             }
 
             if (!$connectionId2) {
-                $io->error('Second connection ID is required. Use --connection-id-2 or -c2 option.');
+                $io->error('Second connection ID is required.');
                 return Command::FAILURE;
             }
 
             if (!$databaseName) {
-                $io->error('Database name is required. Use --database-name or -d option.');
+                $io->error('Database name is required.');
                 return Command::FAILURE;
             }
 
@@ -94,7 +114,7 @@ class CompareTablesCommand extends Command
 
             // Display results
             $io->section('Comparison Results');
-            
+
             if (empty($tables1) && empty($tables2)) {
                 $io->info("No tables found in database '{$databaseName}' for both connections.");
                 return Command::SUCCESS;
@@ -115,7 +135,7 @@ class CompareTablesCommand extends Command
                 $io->listing($commonTables);
             }
 
-            // If there are differences, provide a summary
+            // Summary
             if (!empty($onlyInFirst) || !empty($onlyInSecond)) {
                 $io->section('Summary');
                 $io->writeln(sprintf(
@@ -128,14 +148,14 @@ class CompareTablesCommand extends Command
                     $connectionId2,
                     count($tables2)
                 ));
-                
+
                 if (!empty($onlyInFirst)) {
                     $io->writeln(sprintf(
                         'Only in first connection: %d tables',
                         count($onlyInFirst)
                     ));
                 }
-                
+
                 if (!empty($onlyInSecond)) {
                     $io->writeln(sprintf(
                         'Only in second connection: %d tables',
