@@ -14,6 +14,7 @@ use Danilocgsilva\EntityCloneCli\ListDatabasesCommand;
 use Danilocgsilva\EntityCloneCli\RegisterConnectionCommand;
 use Danilocgsilva\EntityCloneCli\TestConnectionCommand;
 use Danilocgsilva\EntityCloneCli\UpdateConnectionCommand;
+use Danilocgsilva\EntityCloneCli\ShowForeignKeysCommand;
 
 $application = new Application('My CLI App', '1.0.0');
 
@@ -27,6 +28,7 @@ $application->addCommand(new ListDatabasesCommand());
 $application->addCommand(new RegisterConnectionCommand());
 $application->addCommand(new TestConnectionCommand());
 $application->addCommand(new UpdateConnectionCommand());
+$application->addCommand(new ShowForeignKeysCommand());
 
 $application->run();
 
