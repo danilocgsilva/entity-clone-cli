@@ -202,27 +202,31 @@ class ShowForeignKeysCommand extends Command
             return null;
         }
 
-        // Display available tables
+        // Display available tables with numbers
         $io->section('Available Tables');
-        $io->listing($tables);
+        $numberedTables = [];
+        foreach ($tables as $index => $table) {
+            $numberedTables[] = [$index + 1, $table];
+        }
+        $io->table(['Number', 'Table Name'], $numberedTables);
 
-        // Ask for table name
-        $question = new Question('Enter the table name: ');
-        $tableName = $helper->ask($input, $output, $question);
+        // Ask for table selection
+        $question = new Question('Enter the table number: ');
+        $tableSelection = $helper->ask($input, $output, $question);
         
-        if ($tableName === null || trim($tableName) === '') {
-            $io->error('Table name cannot be empty. Exiting.');
+        if ($tableSelection === null || !is_numeric($tableSelection)) {
+            $io->error('Invalid table selection. Please enter a valid number. Exiting.');
             return null;
         }
         
-        $tableName = trim($tableName);
+        $tableIndex = (int) $tableSelection - 1;
         
-        // Validate table exists
-        if (!in_array($tableName, $tables)) {
-            $io->error("Table '{$tableName}' not found in database '{$databaseName}'.");
+        // Validate table index
+        if (!isset($tables[$tableIndex])) {
+            $io->error("Table with number '{$tableSelection}' not found.");
             return null;
         }
         
-        return $tableName;
+        return $tables[$tableIndex];
     }
 }
