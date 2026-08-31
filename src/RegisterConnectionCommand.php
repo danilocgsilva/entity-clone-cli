@@ -6,7 +6,6 @@ namespace Danilocgsilva\EntityCloneCli;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -21,75 +20,75 @@ use Doctrine\ORM\EntityManagerInterface;
 )]
 class RegisterConnectionCommand extends Command
 {
-    private InputInterface $input;
-    private OutputInterface $output;
-    
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->input = $input;
-        $this->output = $output;
-        
+        $io = new SymfonyStyle($input, $output);
+
         /** @var \Symfony\Component\Console\Helper\QuestionHelper */
         $helper = $this->getHelper('question');
 
-        $connectionNameQuestion = new Question('Enter the connection name to make it more eansily identifiable: ');
-        $connectionNameQuestion->setValidator(function ($value) {
-            if (empty(trim($value))) {
-                throw new \Exception('Yiu must define a name for connection.');
-            }
-            return trim($value);
-        });
+        // Connection name (required)
+        $connectionNameQuestion = new Question('Enter the connection name to make it more identifiable: ');
         $connectionName = $helper->ask($input, $output, $connectionNameQuestion);
+        if ($connectionName === null || trim($connectionName) === '') {
+            $io->error('Connection name cannot be empty. Exiting.');
+            return Command::FAILURE;
+        }
+        $connectionName = trim($connectionName);
 
+        // Host (required)
         $hostQuestion = new Question('Enter the host: ');
-        $hostQuestion->setValidator(function ($value) {
-            if (empty(trim($value))) {
-                throw new \Exception('Host cannot be empty.');
-            }
-            return trim($value);
-        });
         $host = $helper->ask($input, $output, $hostQuestion);
+        if ($host === null || trim($host) === '') {
+            $io->error('Host cannot be empty. Exiting.');
+            return Command::FAILURE;
+        }
+        $host = trim($host);
 
+        // User (required)
         $userQuestion = new Question('Enter the user: ');
-        $userQuestion->setValidator(function ($value) {
-            if (empty(trim($value))) {
-                throw new \Exception('User cannot be empty.');
-            }
-            return trim($value);
-        });
         $user = $helper->ask($input, $output, $userQuestion);
+        if ($user === null || trim($user) === '') {
+            $io->error('User cannot be empty. Exiting.');
+            return Command::FAILURE;
+        }
+        $user = trim($user);
 
-        $dbQuestion = new Question('Enter the database name: ');
-        $dbQuestion->setValidator(function ($value) {
-            if (empty(trim($value))) {
-                throw new \Exception('Database name cannot be empty.');
-            }
-            return trim($value);
-        });
+        // Database (optional)
+        $dbQuestion = new Question('Enter the database name (optional): ');
         $databaseName = $helper->ask($input, $output, $dbQuestion);
+        if ($databaseName !== null) {
+            $databaseName = trim($databaseName);
+        }
 
+        // Password (required)
         $passwordQuestion = new Question('Enter the password: ');
         $passwordQuestion->setHidden(true);
         $passwordQuestion->setHiddenFallback(false); // Fail if terminal doesn't support hiding
-        $passwordQuestion->setValidator(function ($value) {
-            if (empty(trim($value))) {
-                throw new \Exception('Password cannot be empty.');
-            }
-            return trim($value);
-        });
         $password = $helper->ask($input, $output, $passwordQuestion);
+        if ($password === null || trim($password) === '') {
+            $io->error('Password cannot be empty. Exiting.');
+            return Command::FAILURE;
+        }
+        $password = trim($password);
 
+        // Port (optional with default)
         $portQuestion = new Question('Enter the port [default: 3306]: ', '3306');
         $port = trim($helper->ask($input, $output, $portQuestion));
+        if ($port === '') {
+            $port = '3306';
+        }
 
+        // Summary
         $output->writeln('<info>Connection details collected successfully!</info>');
         $output->writeln([
             'Host: <comment>' . $host . '</comment>',
             'User: <comment>' . $user . '</comment>',
-            'Database: <comment>' . $databaseName . '</comment>',
+            'Database: <comment>' . ($databaseName ?: 'Not provided') . '</comment>',
             'Port: <comment>' . $port . '</comment>',
         ]);
 
+        // Create EntityManager
         $entityManager = EntityManagerFactory::create(
             projectRoot: __DIR__ . '/..',
             entityPaths: [__DIR__ . '/../src/Entities'],
@@ -100,13 +99,13 @@ class RegisterConnectionCommand extends Command
             ->setHost($host)
             ->setUser($user)
             ->setPassword($password)
-            ->setDatabaseName($databaseName)
+            ->setDatabaseName($databaseName) // Can be null
             ->setPort((int)$port);
 
         try {
             $entityManager->persist($databaseAccess);
             $entityManager->flush();
-            
+
             $output->writeln('<info>Database connection registered successfully with ID: ' . $databaseAccess->getId() . '</info>');
         } catch (\Exception $e) {
             $output->writeln('<error>Error saving connection: ' . $e->getMessage() . '</error>');
