@@ -32,18 +32,18 @@ class GetCreateTableStatementCommand extends BaseCommand
         $io->title('Create Table Statement');
 
         try {
-            $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID:');
-            if (!$connectionId) return Command::FAILURE;
-
-            $databaseName = $this->requireOption($input, $io, 'database-name', 'Please enter the database name:');
-            if (!$databaseName) return Command::FAILURE;
-
-            $tableName = $this->requireOption($input, $io, 'table-name', 'Please enter the table name:');
-            if (!$tableName) return Command::FAILURE;
-
             $entityManager = $this->createEntityManager();
 
+            $connectionId = $this->askConnectionId($input, $io, $entityManager);
+            if (!$connectionId) return Command::FAILURE;
+
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
+
+            $databaseName = $this->askDatabaseName($input, $io, $pdo);
+            if (!$databaseName) return Command::FAILURE;
+
+            $tableName = $this->askTableName($input, $io, $pdo, $databaseName);
+            if (!$tableName) return Command::FAILURE;
             $pdo->exec("USE `{$databaseName}`");
 
             $statement = Domain::getCreateTableStatement($pdo, $tableName);

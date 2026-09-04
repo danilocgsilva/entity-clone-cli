@@ -20,19 +20,20 @@ use Danilocgsilva\EntityCloneCli\GetCreateTableStatementCommand;
 
 $application = new Application('My CLI App', '1.0.0');
 
-$application->addCommand(new CloneRecordCommand());
-$application->addCommand(new CompareTablesCommand());
-$application->addCommand(new DeleteConnectionCommand());
-$application->addCommand(new ListConnectionsCommand());
-$application->addCommand(new ListFieldsCommand());
-$application->addCommand(new ListTablesCommand());
-$application->addCommand(new ListDatabasesCommand());
-$application->addCommand(new RegisterConnectionCommand());
-$application->addCommand(new TestConnectionCommand());
-$application->addCommand(new UpdateConnectionCommand());
-$application->addCommand(new ShowForeignKeysCommand());
-$application->addCommand(new CreateTableFromSourceCommand());
-$application->addCommand(new GetCreateTableStatementCommand());
+$application->addCommands([
+    new CloneRecordCommand(),
+    new CompareTablesCommand(),
+    new DeleteConnectionCommand(),
+    new ListConnectionsCommand(),
+    new ListFieldsCommand(),
+    new ListTablesCommand(),
+    new ListDatabasesCommand(),
+    new RegisterConnectionCommand(),
+    new TestConnectionCommand(),
+    new UpdateConnectionCommand(),
+    new ShowForeignKeysCommand(),
+    new CreateTableFromSourceCommand(),
+    new GetCreateTableStatementCommand(),
+]);
 
 $application->run();
-

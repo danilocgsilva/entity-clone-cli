@@ -49,7 +49,6 @@ class ShowForeignKeysCommand extends BaseCommand
 
         $entityManager = $this->createEntityManager();
 
-        // Get connection ID
         $connectionId = (int) $input->getOption('connection-id');
         if (!$connectionId) {
             $connectionId = $this->askForConnectionId($input, $output, $io, $entityManager);
@@ -58,7 +57,6 @@ class ShowForeignKeysCommand extends BaseCommand
             }
         }
 
-        // Get database name
         $databaseName = $input->getOption('database-name');
         if (!$databaseName) {
             $databaseName = $this->askForDatabaseName($input, $output, $io);
@@ -67,7 +65,6 @@ class ShowForeignKeysCommand extends BaseCommand
             }
         }
 
-        // Get table name
         $tableName = $input->getOption('table-name');
         if (!$tableName) {
             $tableName = $this->askForTableName($input, $output, $io, $entityManager, $connectionId, $databaseName);
@@ -77,10 +74,8 @@ class ShowForeignKeysCommand extends BaseCommand
         }
 
         try {
-            // Get PDO connection
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
 
-            // Get foreign keys for the table
             $foreignKeys = Domain::getTableForeignKeys($pdo, $databaseName, $tableName);
 
             if (empty($foreignKeys)) {
@@ -88,7 +83,6 @@ class ShowForeignKeysCommand extends BaseCommand
                 return Command::SUCCESS;
             }
 
-            // Display results
             $io->section("Foreign Keys for table '{$tableName}'");
             
             $tableRows = [];
@@ -122,7 +116,6 @@ class ShowForeignKeysCommand extends BaseCommand
         /** @var \Symfony\Component\Console\Helper\QuestionHelper */
         $helper = $this->getHelper('question');
 
-        // Get all database accesses
         $databaseAccesses = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class)->findAll();
         
         if (empty($databaseAccesses)) {
@@ -130,7 +123,6 @@ class ShowForeignKeysCommand extends BaseCommand
             return null;
         }
 
-        // Display available connections
         $io->section('Available Database Connections');
         $connections = [];
         foreach ($databaseAccesses as $access) {
@@ -143,8 +135,7 @@ class ShowForeignKeysCommand extends BaseCommand
         
         $io->table(['ID', 'Name', 'Host:Port'], $connections);
         
-        // Ask for connection ID
-        $question = new Question('Enter the database connection ID: ');
+        $question = new Question('Enter the database connection ID');
         $connectionId = $helper->ask($input, $output, $question);
         
         if ($connectionId === null || !is_numeric($connectionId)) {
@@ -185,10 +176,8 @@ class ShowForeignKeysCommand extends BaseCommand
         /** @var \Symfony\Component\Console\Helper\QuestionHelper */
         $helper = $this->getHelper('question');
 
-        // Get PDO connection
         $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
 
-        // Get tables from database
         $tables = Domain::listTables($pdo, $databaseName);
         
         if (empty($tables)) {
@@ -196,7 +185,6 @@ class ShowForeignKeysCommand extends BaseCommand
             return null;
         }
 
-        // Display available tables with numbers
         $io->section('Available Tables');
         $numberedTables = [];
         foreach ($tables as $index => $table) {
@@ -204,7 +192,6 @@ class ShowForeignKeysCommand extends BaseCommand
         }
         $io->table(['Number', 'Table Name'], $numberedTables);
 
-        // Ask for table selection
         $question = new Question('Enter the table number: ');
         $tableSelection = $helper->ask($input, $output, $question);
         
@@ -215,7 +202,6 @@ class ShowForeignKeysCommand extends BaseCommand
         
         $tableIndex = (int) $tableSelection - 1;
         
-        // Validate table index
         if (!isset($tables[$tableIndex])) {
             $io->error("Table with number '{$tableSelection}' not found.");
             return null;
