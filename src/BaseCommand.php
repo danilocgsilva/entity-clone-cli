@@ -110,4 +110,41 @@ abstract class BaseCommand extends Command
         }
         return (int) $id;
     }
+
+    /**
+     * Resolves two DatabaseAccess entities from connection-id-1 / connection-id-2 options,
+     * prompting the user interactively when not provided.
+     *
+     * @return DatabaseAccess[]|null  [access1, access2] or null on failure
+     */
+    protected function resolveTwoConnections(InputInterface $input, SymfonyStyle $io): ?array
+    {
+        $entityManager = $this->createEntityManager();
+        $repository    = $entityManager->getRepository(DatabaseAccess::class);
+
+        $id1 = (int) $input->getOption('connection-id-1');
+        $id2 = (int) $input->getOption('connection-id-2');
+
+        if (!$id1 || !$id2) {
+            $io->table(['ID', 'Name'], array_map(fn($c) => [$c->getId(), $c->getName()], $repository->findAll()));
+        }
+
+        if (!$id1) {
+            $id1 = (int) $io->ask('Please enter the first connection ID:');
+            if (!$id1) { $io->error('First connection ID is required.'); return null; }
+        }
+
+        if (!$id2) {
+            $id2 = (int) $io->ask('Please enter the second connection ID:');
+            if (!$id2) { $io->error('Second connection ID is required.'); return null; }
+        }
+
+        $access1 = $repository->find($id1);
+        if (!$access1) { $io->error("Connection ID {$id1} not found."); return null; }
+
+        $access2 = $repository->find($id2);
+        if (!$access2) { $io->error("Connection ID {$id2} not found."); return null; }
+
+        return [$access1, $access2];
+    }
 }
