@@ -12,14 +12,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Question\Question;
 use Danilocgsilva\EntityClone\Domain;
-use Danilocgsilva\EntityClone\EntityManagerFactory;
-use Doctrine\ORM\EntityManagerInterface;
 
 #[AsCommand(
     name: 'app:show-foreign-keys',
     description: 'Show foreign keys for a table in a database connection.'
 )]
-class ShowForeignKeysCommand extends Command
+class ShowForeignKeysCommand extends BaseCommand
 {
     protected function configure(): void
     {
@@ -49,11 +47,7 @@ class ShowForeignKeysCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $io->title('Foreign Keys Information');
 
-        // Create EntityManager
-        $entityManager = EntityManagerFactory::create(
-            projectRoot: __DIR__ . '/..',
-            entityPaths: [__DIR__ . '/../src/Entities'],
-        );
+        $entityManager = $this->createEntityManager();
 
         // Get connection ID
         $connectionId = (int) $input->getOption('connection-id');

@@ -11,15 +11,12 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
-use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
-use Danilocgsilva\EntityClone\EntityManagerFactory;
-use Doctrine\ORM\EntityManagerInterface;
 
 #[AsCommand(
     name: 'app:list-tables',
     description: 'List all tables from a database.'
 )]
-class ListTablesCommand extends Command
+class ListTablesCommand extends BaseCommand
 {
     protected function configure(): void
     {
@@ -45,44 +42,13 @@ class ListTablesCommand extends Command
 
         try {
             // Get connection ID and database name from input
-            $connectionId = (int) $input->getOption('connection-id');
-            $databaseName = $input->getOption('database-name');
+            $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID');
+            if (!$connectionId) return Command::FAILURE;
 
-            // Prompt for connection ID if not provided
-            if (!$connectionId) {
-                $connectionId = (int) $io->ask('Please enter the database connection ID', null, function ($value) {
-                    if (!is_numeric($value) || $value <= 0) {
-                        throw new \InvalidArgumentException('Connection ID must be a positive integer');
-                    }
-                    return (int) $value;
-                });
-                
-                if (!$connectionId) {
-                    $io->error('Connection ID is required.');
-                    return Command::FAILURE;
-                }
-            }
+            $databaseName = $this->requireOption($input, $io, 'database-name', 'Please enter the database name');
+            if (!$databaseName) return Command::FAILURE;
 
-            // Prompt for database name if not provided
-            if (!$databaseName) {
-                $databaseName = $io->ask('Please enter the database name', null, function ($value) {
-                    if (empty(trim($value))) {
-                        throw new \InvalidArgumentException('Database name cannot be empty');
-                    }
-                    return trim($value);
-                });
-                
-                if (!$databaseName) {
-                    $io->error('Database name is required.');
-                    return Command::FAILURE;
-                }
-            }
-
-            // Create EntityManager
-            $entityManager = EntityManagerFactory::create(
-                projectRoot: __DIR__ . '/..',
-                entityPaths: [__DIR__ . '/../src/Entities'],
-            );
+            $entityManager = $this->createEntityManager();
 
             // Get PDO connection from database access ID
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);

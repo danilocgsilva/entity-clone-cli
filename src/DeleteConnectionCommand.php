@@ -12,14 +12,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
-use Danilocgsilva\EntityClone\EntityManagerFactory;
-use Doctrine\ORM\EntityManagerInterface;
 
 #[AsCommand(
     name: 'app:delete-connection',
     description: 'Delete a registered database connection.'
 )]
-class DeleteConnectionCommand extends Command
+class DeleteConnectionCommand extends BaseCommand
 {
     protected function configure(): void
     {
@@ -38,24 +36,10 @@ class DeleteConnectionCommand extends Command
         $io->title('Delete Database Connection');
 
         try {
-            // Get connection ID from input
-            $connectionId = (int) $input->getOption('connection-id');
+            $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID to delete:');
+            if (!$connectionId) return Command::FAILURE;
 
-            if (!$connectionId) {
-                $io->warning('Connection ID was not provided.');
-                $connectionId = (int) $io->ask('Please enter the database connection ID to delete:');
-            }
-
-            if (!$connectionId) {
-                $io->error('Connection ID is required.');
-                return Command::FAILURE;
-            }
-
-            // Create EntityManager
-            $entityManager = EntityManagerFactory::create(
-                projectRoot: __DIR__ . '/..',
-                entityPaths: [__DIR__ . '/../src/Entities'],
-            );
+            $entityManager = $this->createEntityManager();
 
             // Find the connection
             $databaseAccess = $entityManager->getRepository(DatabaseAccess::class)->find($connectionId);

@@ -12,14 +12,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
-use Danilocgsilva\EntityClone\EntityManagerFactory;
-use Doctrine\ORM\EntityManagerInterface;
 
 #[AsCommand(
     name: 'app:list-databases',
     description: 'List all databases from a database connection.'
 )]
-class ListDatabasesCommand extends Command
+class ListDatabasesCommand extends BaseCommand
 {
     protected function configure(): void
     {
@@ -38,19 +36,10 @@ class ListDatabasesCommand extends Command
         $io->title('Database Connection Databases List');
 
         try {
-            // Get connection ID from input
-            $connectionId = (int) $input->getOption('connection-id');
+            $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID');
+            if (!$connectionId) return Command::FAILURE;
 
-            if (!$connectionId) {
-                $io->error('Connection ID is required. Use --connection-id or -c option.');
-                return Command::FAILURE;
-            }
-
-            // Create EntityManager
-            $entityManager = EntityManagerFactory::create(
-                projectRoot: __DIR__ . '/..',
-                entityPaths: [__DIR__ . '/../src/Entities'],
-            );
+            $entityManager = $this->createEntityManager();
 
             // Get PDO connection from database access ID
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);

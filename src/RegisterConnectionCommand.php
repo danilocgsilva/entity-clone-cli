@@ -11,14 +11,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Question\Question;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
-use Danilocgsilva\EntityClone\EntityManagerFactory;
-use Doctrine\ORM\EntityManagerInterface;
 
 #[AsCommand(
     name: 'app:register-connection',
     description: 'Register a database connection credentials.'
 )]
-class RegisterConnectionCommand extends Command
+class RegisterConnectionCommand extends BaseCommand
 {
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -88,11 +86,7 @@ class RegisterConnectionCommand extends Command
             'Port: <comment>' . $port . '</comment>',
         ]);
 
-        // Create EntityManager
-        $entityManager = EntityManagerFactory::create(
-            projectRoot: __DIR__ . '/..',
-            entityPaths: [__DIR__ . '/../src/Entities'],
-        );
+        $entityManager = $this->createEntityManager();
 
         $databaseAccess = new DatabaseAccess()
             ->setName($connectionName)

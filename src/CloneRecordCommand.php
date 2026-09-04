@@ -11,15 +11,12 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
-use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
-use Danilocgsilva\EntityClone\EntityManagerFactory;
-use Doctrine\ORM\EntityManagerInterface;
 
 #[AsCommand(
     name: 'app:clone-record',
     description: 'Copy a record from one table to another database.'
 )]
-class CloneRecordCommand extends Command
+class CloneRecordCommand extends BaseCommand
 {
     protected function configure(): void
     {
@@ -56,50 +53,19 @@ class CloneRecordCommand extends Command
         $io->title('Clone Database Record');
 
         try {
-            // Create EntityManager
-            $entityManager = EntityManagerFactory::create(
-                projectRoot: __DIR__ . '/..',
-                entityPaths: [__DIR__ . '/../src/Entities'],
-            );
+            $entityManager = $this->createEntityManager();
 
-            // Get connection IDs with prompting if not provided
-            $sourceConnectionId = (int) $input->getOption('source-connection-id');
-            if (!$sourceConnectionId) {
-                $sourceConnectionId = (int) $io->ask('Enter source database connection ID');
-                if (!$sourceConnectionId) {
-                    $io->error('Source connection ID is required.');
-                    return Command::FAILURE;
-                }
-            }
+            $sourceConnectionId = (int) $this->requireOption($input, $io, 'source-connection-id', 'Enter source database connection ID');
+            if (!$sourceConnectionId) return Command::FAILURE;
 
-            $targetConnectionId = (int) $input->getOption('target-connection-id');
-            if (!$targetConnectionId) {
-                $targetConnectionId = (int) $io->ask('Enter target database connection ID');
-                if (!$targetConnectionId) {
-                    $io->error('Target connection ID is required.');
-                    return Command::FAILURE;
-                }
-            }
+            $targetConnectionId = (int) $this->requireOption($input, $io, 'target-connection-id', 'Enter target database connection ID');
+            if (!$targetConnectionId) return Command::FAILURE;
 
-            // Get table name with prompting if not provided
-            $tableName = $input->getOption('table-name');
-            if (!$tableName) {
-                $tableName = $io->ask('Enter table name to clone record from');
-                if (!$tableName) {
-                    $io->error('Table name is required.');
-                    return Command::FAILURE;
-                }
-            }
+            $tableName = $this->requireOption($input, $io, 'table-name', 'Enter table name to clone record from');
+            if (!$tableName) return Command::FAILURE;
 
-            // Get record ID with prompting if not provided
-            $recordId = (int) $input->getOption('record-id');
-            if (!$recordId) {
-                $recordId = (int) $io->ask('Enter ID of the record to clone');
-                if (!$recordId) {
-                    $io->error('Record ID is required.');
-                    return Command::FAILURE;
-                }
-            }
+            $recordId = (int) $this->requireOption($input, $io, 'record-id', 'Enter ID of the record to clone');
+            if (!$recordId) return Command::FAILURE;
 
             // Get PDO connections from database access IDs
             $sourcePdo = Domain::getPdoFromDatabaseAccessId($sourceConnectionId, $entityManager);
