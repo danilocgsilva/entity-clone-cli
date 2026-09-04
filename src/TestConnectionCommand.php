@@ -38,12 +38,14 @@ class TestConnectionCommand extends Command
         $io->title('Database Connection Test');
 
         try {
-            // Get connection ID from input
             $connectionId = (int) $input->getOption('connection-id');
 
             if (!$connectionId) {
+                $connectionId = (int) $io->ask('Please enter the database connection ID');
+            }
+
+            if (!$connectionId) {
                 $io->warning('Connection ID was not provided.');
-                $connectionId = (int) $io->ask('Please enter the database connection ID:');
             }
 
             if (!$connectionId) {
@@ -51,16 +53,13 @@ class TestConnectionCommand extends Command
                 return Command::FAILURE;
             }
 
-            // Create EntityManager
             $entityManager = EntityManagerFactory::create(
                 projectRoot: __DIR__ . '/..',
                 entityPaths: [__DIR__ . '/../src/Entities'],
             );
 
-            // Get PDO connection from database access ID
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
 
-            // Test the PDO connection
             $connectionTestResult = Domain::testPdoConnection($pdo);
 
             if ($connectionTestResult) {

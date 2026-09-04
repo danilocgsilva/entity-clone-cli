@@ -13,7 +13,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Question\Question;
 use Danilocgsilva\EntityClone\Helpers;
 use Danilocgsilva\EntityClone\Domain;
-use Doctrine\ORM\EntityManagerInterface;
+use Danilocgsilva\EntityClone\EntityManagerFactory;
 
 #[AsCommand(
     name: 'db:table:create-from-source',
@@ -21,21 +21,13 @@ use Doctrine\ORM\EntityManagerInterface;
 )]
 class CreateTableFromSourceCommand extends Command
 {
-    private EntityManagerInterface $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        parent::__construct();
-        $this->entityManager = $entityManager;
-    }
-
     protected function configure(): void
     {
         $this
             ->addOption('source-connection', 's', InputOption::VALUE_OPTIONAL, 'Source connection ID')
             ->addOption('target-connection', 't', InputOption::VALUE_OPTIONAL, 'Target connection ID')
             ->addOption('database-name', 'd', InputOption::VALUE_OPTIONAL, 'Database name')
-            ->addOption('table-name', 'n', InputOption::VALUE_OPTIONAL, 'Table name');
+            ->addOption('table-name', null, InputOption::VALUE_OPTIONAL, 'Table name');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -56,15 +48,20 @@ class CreateTableFromSourceCommand extends Command
         $tableName = $this->getOptionOrPrompt($input, $io, 'table-name', 'Enter table name:');
 
         try {
+            $entityManager = EntityManagerFactory::create(
+                projectRoot: __DIR__ . '/..',
+                entityPaths: [__DIR__ . '/../src/Entities'],
+            );
+
             // Validate connections exist
-            $sourceConnection = $this->entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class)
+            $sourceConnection = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class)
                 ->find($sourceConnectionId);
             
             if (!$sourceConnection) {
                 throw new \RuntimeException("Source connection with ID {$sourceConnectionId} not found");
             }
 
-            $targetConnection = $this->entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class)
+            $targetConnection = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class)
                 ->find($targetConnectionId);
             
             if (!$targetConnection) {
@@ -77,7 +74,7 @@ class CreateTableFromSourceCommand extends Command
                 $targetConnectionId,
                 $databaseName,
                 $tableName,
-                $this->entityManager
+                $entityManager
             );
 
             $io->success("Table '{$tableName}' successfully created in database '{$databaseName}' from source connection");
