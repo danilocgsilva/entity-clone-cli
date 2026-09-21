@@ -41,21 +41,17 @@ class ListDatabasesCommand extends BaseCommand
 
             $entityManager = $this->createEntityManager();
 
-            // Get PDO connection from database access ID
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
 
-            // Get databases from connection
-            $databases = Domain::listDatabases($pdo);
+            $databases = Domain::listDatabases($pdo, true);
 
             if (empty($databases)) {
                 $io->info("No databases found for connection {$connectionId}.");
                 return Command::SUCCESS;
             }
 
-            // Sort databases alphabetically
             sort($databases);
 
-            // Display databases as a list
             $io->listing($databases);
 
         } catch (\Exception $e) {
