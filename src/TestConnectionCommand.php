@@ -37,7 +37,9 @@ class TestConnectionCommand extends BaseCommand
 
         try {
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID');
-            if (!$connectionId) return Command::FAILURE;
+            if (!$connectionId) {
+                return Command::FAILURE;
+            }
 
             $entityManager = $this->createEntityManager();
 
@@ -57,7 +59,5 @@ class TestConnectionCommand extends BaseCommand
             $io->error('Error testing database connection: ' . $e->getMessage());
             return Command::FAILURE;
         }
-
-        return Command::SUCCESS;
     }
 }
