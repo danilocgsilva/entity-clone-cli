@@ -17,6 +17,7 @@ use Danilocgsilva\EntityCloneCli\UpdateConnectionCommand;
 use Danilocgsilva\EntityCloneCli\ShowForeignKeysCommand;
 use Danilocgsilva\EntityCloneCli\CompareDatabasesCommand;
 use Danilocgsilva\EntityCloneCli\CreateTableFromSourceCommand;
+use Danilocgsilva\EntityCloneCli\CreateTablesFromSourceCommand;
 use Danilocgsilva\EntityCloneCli\GetCreateTableStatementCommand;
 use Danilocgsilva\EntityCloneCli\CreateMissingDatabaseCommand;
 use Danilocgsilva\EntityCloneCli\SyncDatabasesCommand;
@@ -40,6 +41,7 @@ $application->addCommands([
     new GetCreateTableStatementCommand(),
     new CreateMissingDatabaseCommand(),
     new SyncDatabasesCommand(),
+    new CreateTablesFromSourceCommand(),
 ]);
 
 $application->run();
