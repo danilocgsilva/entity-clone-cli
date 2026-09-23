@@ -64,8 +64,8 @@ class CreateTableFromSourceCommand extends BaseCommand
 
             // Create the table
             Domain::createTableFromSource(
-                $sourceConnectionId,
-                $targetConnectionId,
+                (int) $sourceConnectionId,
+                (int) $targetConnectionId,
                 $databaseName,
                 $tableName,
                 $entityManager

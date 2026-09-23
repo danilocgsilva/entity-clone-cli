@@ -59,7 +59,7 @@ class CreateTablesFromSourceCommand extends BaseCommand
             }
 
             // Get all tables from source database
-            $sourcePdo = Domain::getPdoFromDatabaseAccessId($sourceConnectionId, $entityManager);
+            $sourcePdo = Domain::getPdoFromDatabaseAccessId((int) $sourceConnectionId, $entityManager);
             $tables = Domain::listTables($sourcePdo, $databaseName);
 
             if (empty($tables)) {
@@ -73,8 +73,8 @@ class CreateTablesFromSourceCommand extends BaseCommand
                 try {
                     // Create table in target database
                     Domain::createTableFromSource(
-                        $sourceConnectionId,
-                        $targetConnectionId,
+                        (int) $sourceConnectionId,
+                        (int) $targetConnectionId,
                         $databaseName,
                         $tableName,
                         $entityManager
