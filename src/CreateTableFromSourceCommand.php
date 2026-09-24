@@ -13,6 +13,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Exception;
 use RuntimeException;
+use Danilocgsilva\EntityClone\Exceptions\MissingTargetDatabase;
+use Danilocgsilva\EntityClone\Exceptions\TargetTableAlreadyExists;
 
 #[AsCommand(
     name: 'db:table:create-from-source',
@@ -59,14 +61,14 @@ class CreateTableFromSourceCommand extends BaseCommand
 
             $sourceConnection = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class)
                 ->find($sourceConnectionId);
-            
+
             if (!$sourceConnection) {
                 throw new RuntimeException("Source connection with ID {$sourceConnectionId} not found");
             }
 
             $targetConnection = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class)
                 ->find($targetConnectionId);
-            
+
             if (!$targetConnection) {
                 throw new RuntimeException("Target connection with ID {$targetConnectionId} not found");
             }
@@ -81,6 +83,12 @@ class CreateTableFromSourceCommand extends BaseCommand
 
             $io->success("Table '{$tableName}' successfully created in database '{$databaseName}' from source connection");
             return Command::SUCCESS;
+        } catch (TargetTableAlreadyExists $e) {
+            $io->warning("Table '{$tableName}' already exists in database '{$databaseName}'. No action taken.");
+            return Command::SUCCESS;
+        } catch (MissingTargetDatabase $e) {
+            $io->error($e->getMessage());
+            return Command::FAILURE;
         } catch (Exception $e) {
             $io->error("Error creating table: " . $e->getMessage());
             return Command::FAILURE;
