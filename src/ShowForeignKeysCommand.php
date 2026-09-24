@@ -22,24 +22,9 @@ class ShowForeignKeysCommand extends BaseCommand
     protected function configure(): void
     {
         $this
-            ->addOption(
-                'connection-id',
-                'c',
-                InputOption::VALUE_REQUIRED,
-                'Database connection ID'
-            )
-            ->addOption(
-                'database-name',
-                'd',
-                InputOption::VALUE_REQUIRED,
-                'Database name'
-            )
-            ->addOption(
-                'table-name',
-                't',
-                InputOption::VALUE_REQUIRED,
-                'Table name'
-            );
+            ->addOption('connection-id', 'c', InputOption::VALUE_REQUIRED, 'Database connection ID')
+            ->addOption('database-name', 'd', InputOption::VALUE_REQUIRED, 'Database name')
+            ->addOption('table-name', 't', InputOption::VALUE_REQUIRED, 'Table name');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -49,32 +34,15 @@ class ShowForeignKeysCommand extends BaseCommand
 
         $entityManager = $this->createEntityManager();
 
-        $connectionId = (int) $input->getOption('connection-id');
-        if (!$connectionId) {
-            $connectionId = $this->askForConnectionId($input, $output, $io, $entityManager);
-            if ($connectionId === null) {
-                return Command::FAILURE;
-            }
+        $options = $this->initializeOptions($input, $io);
+        if ($options === null) {
+            return Command::FAILURE;
         }
 
-        $databaseName = $input->getOption('database-name');
-        if (!$databaseName) {
-            $databaseName = $this->askForDatabaseName($input, $output, $io);
-            if ($databaseName === null) {
-                return Command::FAILURE;
-            }
-        }
-
-        $tableName = $input->getOption('table-name');
-        if (!$tableName) {
-            $tableName = $this->askForTableName($input, $output, $io, $entityManager, $connectionId, $databaseName);
-            if ($tableName === null) {
-                return Command::FAILURE;
-            }
-        }
+        [$connectionId, $databaseName, $tableName] = $options;
 
         try {
-            $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
+            $pdo = Domain::getPdoFromDatabaseAccessId((int) $connectionId, $entityManager);
 
             $foreignKeys = Domain::getTableForeignKeys($pdo, $databaseName, $tableName);
 
@@ -107,106 +75,27 @@ class ShowForeignKeysCommand extends BaseCommand
         return Command::SUCCESS;
     }
 
-    private function askForConnectionId(
-        InputInterface $input,
-        OutputInterface $output,
-        SymfonyStyle $io,
-        EntityManagerInterface $entityManager
-    ): ?int {
-        /** @var \Symfony\Component\Console\Helper\QuestionHelper */
-        $helper = $this->getHelper('question');
-
-        $databaseAccesses = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class)->findAll();
-        
-        if (empty($databaseAccesses)) {
-            $io->error('No database connections found. Please register a connection first using app:register-connection command.');
+    private function initializeOptions(InputInterface $input, SymfonyStyle $io): ?array
+    {
+        $connectionId = $this->requireOption($input, $io, 'connection-id', 'Enter connection ID:');
+        if (!$connectionId) {
             return null;
         }
 
-        $io->section('Available Database Connections');
-        $connections = [];
-        foreach ($databaseAccesses as $access) {
-            $connections[] = [
-                $access->getId(),
-                $access->getName(),
-                $access->getHost() . ':' . $access->getPort()
-            ];
-        }
-        
-        $io->table(['ID', 'Name', 'Host:Port'], $connections);
-        
-        $question = new Question('Enter the database connection ID');
-        $connectionId = $helper->ask($input, $output, $question);
-        
-        if ($connectionId === null || !is_numeric($connectionId)) {
-            $io->error('Invalid connection ID. Exiting.');
-            return null;
-        }
-        
-        return (int) $connectionId;
-    }
-
-    private function askForDatabaseName(
-        InputInterface $input,
-        OutputInterface $output,
-        SymfonyStyle $io
-    ): ?string {
-        /** @var \Symfony\Component\Console\Helper\QuestionHelper */
-        $helper = $this->getHelper('question');
-
-        $question = new Question('Enter the database name: ');
-        $databaseName = $helper->ask($input, $output, $question);
-        
-        if ($databaseName === null || trim($databaseName) === '') {
-            $io->error('Database name cannot be empty. Exiting.');
-            return null;
-        }
-        
-        return trim($databaseName);
-    }
-
-    private function askForTableName(
-        InputInterface $input,
-        OutputInterface $output,
-        SymfonyStyle $io,
-        EntityManagerInterface $entityManager,
-        int $connectionId,
-        string $databaseName
-    ): ?string {
-        /** @var \Symfony\Component\Console\Helper\QuestionHelper */
-        $helper = $this->getHelper('question');
-
-        $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
-
-        $tables = Domain::listTables($pdo, $databaseName);
-        
-        if (empty($tables)) {
-            $io->error("No tables found in database '{$databaseName}'");
+        $databaseName = $this->requireOption($input, $io, 'database-name', 'Enter database name:');
+        if (!$databaseName) {
             return null;
         }
 
-        $io->section('Available Tables');
-        $numberedTables = [];
-        foreach ($tables as $index => $table) {
-            $numberedTables[] = [$index + 1, $table];
+        $tableName = $this->requireOption($input, $io, 'table-name', 'Enter table name:');
+        if (!$tableName) {
+            return null;
         }
-        $io->table(['Number', 'Table Name'], $numberedTables);
 
-        $question = new Question('Enter the table number: ');
-        $tableSelection = $helper->ask($input, $output, $question);
-        
-        if ($tableSelection === null || !is_numeric($tableSelection)) {
-            $io->error('Invalid table selection. Please enter a valid number. Exiting.');
-            return null;
-        }
-        
-        $tableIndex = (int) $tableSelection - 1;
-        
-        if (!isset($tables[$tableIndex])) {
-            $io->error("Table with number '{$tableSelection}' not found.");
-            return null;
-        }
-        
-        return $tables[$tableIndex];
+        return [
+            (int) $connectionId,
+            $databaseName,
+            $tableName
+        ];
     }
 }
