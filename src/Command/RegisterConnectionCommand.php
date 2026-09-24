@@ -11,6 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Question\Question;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
     name: 'app:register-connection',
@@ -25,7 +26,6 @@ class RegisterConnectionCommand extends BaseCommand
         /** @var \Symfony\Component\Console\Helper\QuestionHelper */
         $helper = $this->getHelper('question');
 
-        // Connection name (required)
         $connectionNameQuestion = new Question('Enter the connection name to make it more identifiable: ');
         $connectionName = $helper->ask($input, $output, $connectionNameQuestion);
         if ($connectionName === null || trim($connectionName) === '') {
@@ -34,7 +34,6 @@ class RegisterConnectionCommand extends BaseCommand
         }
         $connectionName = trim($connectionName);
 
-        // Host (required)
         $hostQuestion = new Question('Enter the host: ');
         $host = $helper->ask($input, $output, $hostQuestion);
         if ($host === null || trim($host) === '') {
@@ -43,7 +42,6 @@ class RegisterConnectionCommand extends BaseCommand
         }
         $host = trim($host);
 
-        // User (required)
         $userQuestion = new Question('Enter the user: ');
         $user = $helper->ask($input, $output, $userQuestion);
         if ($user === null || trim($user) === '') {
@@ -52,14 +50,12 @@ class RegisterConnectionCommand extends BaseCommand
         }
         $user = trim($user);
 
-        // Database (optional)
         $dbQuestion = new Question('Enter the database name (optional): ');
         $databaseName = $helper->ask($input, $output, $dbQuestion);
         if ($databaseName !== null) {
             $databaseName = trim($databaseName);
         }
 
-        // Password (required)
         $passwordQuestion = new Question('Enter the password: ');
         $passwordQuestion->setHidden(true);
         $passwordQuestion->setHiddenFallback(false); // Fail if terminal doesn't support hiding
@@ -70,14 +66,12 @@ class RegisterConnectionCommand extends BaseCommand
         }
         $password = trim($password);
 
-        // Port (optional with default)
         $portQuestion = new Question('Enter the port [default: 3306]: ', '3306');
         $port = trim($helper->ask($input, $output, $portQuestion));
         if ($port === '') {
             $port = '3306';
         }
 
-        // Summary
         $output->writeln('<info>Connection details collected successfully!</info>');
         $output->writeln([
             'Host: <comment>' . $host . '</comment>',
@@ -86,7 +80,7 @@ class RegisterConnectionCommand extends BaseCommand
             'Port: <comment>' . $port . '</comment>',
         ]);
 
-        $entityManager = $this->createEntityManager();
+        $entityManager = Helpers::createEntityManager();
 
         $databaseAccess = new DatabaseAccess()
             ->setName($connectionName)
