@@ -20,19 +20,23 @@ use Danilocgsilva\EntityCloneCli\Command\CreateTableFromSourceCommand;
 use Danilocgsilva\EntityCloneCli\Command\GetCreateTableStatementCommand;
 use Danilocgsilva\EntityCloneCli\Command\CreateMissingDatabaseCommand;
 use Danilocgsilva\EntityCloneCli\Command\SyncDatabasesCommand;
+use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 $application = new Application('My CLI App', '1.0.0');
+
+$databaseConnectionLister = new DatabaseConnectionLister(Helpers::createEntityManager());
 
 $application->addCommands([
     new CloneRecordCommand(),
     new CompareTablesCommand(),
     new DeleteConnectionCommand(),
-    new ListConnectionsCommand(),
+    new ListConnectionsCommand($databaseConnectionLister),
     new ListFieldsCommand(),
     new ListTablesCommand(),
     new ListDatabasesCommand(),
     new RegisterConnectionCommand(),
-    new TestConnectionCommand(),
+    new TestConnectionCommand($databaseConnectionLister),
     new UpdateConnectionCommand(),
     new ShowForeignKeysCommand(),
     new CompareDatabasesCommand(),

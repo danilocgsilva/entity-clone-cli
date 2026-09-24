@@ -15,6 +15,7 @@ use Exception;
 use RuntimeException;
 use Danilocgsilva\EntityClone\Exceptions\MissingTargetDatabase;
 use Danilocgsilva\EntityClone\Exceptions\TargetTableAlreadyExists;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
     name: 'db:table:create-from-source',
@@ -44,7 +45,7 @@ class CreateTableFromSourceCommand extends BaseCommand
         [$sourceConnectionId, $targetConnectionId, $databaseName, $tableName] = $options;
 
         try {
-            $entityManager = $this->createEntityManager();
+            $entityManager = Helpers::createEntityManager();
 
             $sourceConnection = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class)
                 ->find($sourceConnectionId);

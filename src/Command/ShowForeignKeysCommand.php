@@ -10,8 +10,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Console\Question\Question;
 use Danilocgsilva\EntityClone\Domain;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
     name: 'app:show-foreign-keys',
@@ -32,7 +32,7 @@ class ShowForeignKeysCommand extends BaseCommand
         $io = new SymfonyStyle($input, $output);
         $io->title('Foreign Keys Information');
 
-        $entityManager = $this->createEntityManager();
+        $entityManager = Helpers::createEntityManager();
 
         $options = $this->initializeOptions($input, $io);
         if ($options === null) {
@@ -77,11 +77,31 @@ class ShowForeignKeysCommand extends BaseCommand
 
     private function initializeOptions(InputInterface $input, SymfonyStyle $io): ?array
     {
-        
         $connectionId = $this->requireOption($input, $io, 'connection-id', 'Enter connection ID:');
         if (!$connectionId) {
             return null;
         }
+
+        $entityManager = Helpers::createEntityManager();
+        $pdo = Domain::getPdoFromDatabaseAccessId((int) $connectionId, $entityManager);
+        
+        $stmt = $pdo->query('SHOW DATABASES');
+        $databases = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        
+        if (empty($databases)) {
+            $io->error('No databases found for this connection.');
+            return null;
+        }
+        
+        sort($databases);
+        
+        $databaseName = $this->requireOptionByNumber(
+            $input, 
+            $io, 
+            'database-name', 
+            'Pick a database number:', 
+            $databases
+        );
 
         $databaseName = $this->requireOption($input, $io, 'database-name', 'Enter database name:');
         if (!$databaseName) {

@@ -13,14 +13,6 @@ use Doctrine\ORM\EntityManagerInterface;
 
 abstract class BaseCommand extends Command
 {
-    protected function createEntityManager(): EntityManagerInterface
-    {
-        return EntityManagerFactory::create(
-            projectRoot: __DIR__ . '/..',
-            entityPaths: [__DIR__ . '/../src/Entities'],
-        );
-    }
-
     protected function requireOption(InputInterface $input, SymfonyStyle $io, string $option, string $question): ?string
     {
         $value = $input->getOption($option);

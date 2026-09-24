@@ -12,6 +12,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
+use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
     name: 'app:test-connection',
@@ -19,6 +21,14 @@ use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 )]
 class TestConnectionCommand extends BaseCommand
 {
+    private DatabaseConnectionLister $connectionLister;
+
+    public function __construct(DatabaseConnectionLister $connectionLister)
+    {
+        $this->connectionLister = $connectionLister;
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this
@@ -36,12 +46,14 @@ class TestConnectionCommand extends BaseCommand
         $io->title('Database Connection Test');
 
         try {
+            $this->connectionLister->listConnections($io);
+            
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID');
             if (!$connectionId) {
                 return Command::FAILURE;
             }
 
-            $entityManager = $this->createEntityManager();
+            $entityManager = Helpers::createEntityManager();
 
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
 
