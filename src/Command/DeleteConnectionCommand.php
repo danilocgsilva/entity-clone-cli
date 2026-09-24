@@ -12,6 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
     name: 'app:delete-connection',
@@ -39,9 +40,8 @@ class DeleteConnectionCommand extends BaseCommand
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID to delete:');
             if (!$connectionId) return Command::FAILURE;
 
-            $entityManager = $this->createEntityManager();
+            $entityManager = Helpers::createEntityManager();
 
-            // Find the connection
             $databaseAccess = $entityManager->getRepository(DatabaseAccess::class)->find($connectionId);
             
             if (!$databaseAccess) {
@@ -49,7 +49,6 @@ class DeleteConnectionCommand extends BaseCommand
                 return Command::FAILURE;
             }
 
-            // Confirm deletion
             $question = new ConfirmationQuestion(
                 "Are you sure you want to delete the connection '{$databaseAccess->getName()}' (ID: {$connectionId})? (yes/no) ",
                 false
@@ -63,7 +62,6 @@ class DeleteConnectionCommand extends BaseCommand
                 return Command::SUCCESS;
             }
 
-            // Delete the connection
             $entityManager->remove($databaseAccess);
             $entityManager->flush();
 

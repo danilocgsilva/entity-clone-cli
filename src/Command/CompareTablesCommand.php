@@ -12,6 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\DatabaseWorks;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
     name: 'app:compare-tables',
@@ -61,7 +62,7 @@ class CompareTablesCommand extends BaseCommand
 
             $databaseName = $commonDatabases[$pick - 1];
 
-            $entityManager = $this->createEntityManager();
+            $entityManager = Helpers::createEntityManager();
             $pdo1 = Domain::getPdoFromDatabaseAccessId($access1->getId(), $entityManager);
             $pdo2 = Domain::getPdoFromDatabaseAccessId($access2->getId(), $entityManager);
 

@@ -12,6 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
     name: 'app:list-databases',
@@ -39,7 +40,7 @@ class ListDatabasesCommand extends BaseCommand
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID');
             if (!$connectionId) return Command::FAILURE;
 
-            $entityManager = $this->createEntityManager();
+            $entityManager = Helpers::createEntityManager();
 
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
 

@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
     name: 'app:clone-record',
@@ -53,7 +54,7 @@ class CloneRecordCommand extends BaseCommand
         $io->title('Clone Database Record');
 
         try {
-            $entityManager = $this->createEntityManager();
+            $entityManager = Helpers::createEntityManager();
 
             $sourceConnectionId = (int) $this->requireOption($input, $io, 'source-connection-id', 'Enter source database connection ID');
             if (!$sourceConnectionId) return Command::FAILURE;

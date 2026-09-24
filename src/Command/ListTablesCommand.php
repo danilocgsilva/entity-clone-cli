@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
     name: 'app:list-tables',
@@ -41,19 +42,16 @@ class ListTablesCommand extends BaseCommand
         $io->title('Database Tables List');
 
         try {
-            // Get connection ID and database name from input
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID');
             if (!$connectionId) return Command::FAILURE;
 
             $databaseName = $this->requireOption($input, $io, 'database-name', 'Please enter the database name');
             if (!$databaseName) return Command::FAILURE;
 
-            $entityManager = $this->createEntityManager();
+            $entityManager = Helpers::createEntityManager();
 
-            // Get PDO connection from database access ID
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
 
-            // Get tables from database
             $tables = Domain::listTables($pdo, $databaseName);
 
             if (empty($tables)) {
@@ -61,10 +59,8 @@ class ListTablesCommand extends BaseCommand
                 return Command::SUCCESS;
             }
 
-            // Sort tables alphabetically
             sort($tables);
 
-            // Display tables as a list
             $io->listing($tables);
 
         } catch (\Exception $e) {

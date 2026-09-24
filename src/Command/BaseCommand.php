@@ -7,9 +7,9 @@ namespace Danilocgsilva\EntityCloneCli\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Danilocgsilva\EntityClone\EntityManagerFactory;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Doctrine\ORM\EntityManagerInterface;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 abstract class BaseCommand extends Command
 {
@@ -155,7 +155,7 @@ abstract class BaseCommand extends Command
      */
     protected function resolveTwoConnections(InputInterface $input, SymfonyStyle $io): ?array
     {
-        $entityManager = $this->createEntityManager();
+        $entityManager = Helpers::createEntityManager();
         $repository    = $entityManager->getRepository(DatabaseAccess::class);
 
         $id1 = (int) $input->getOption('connection-id-1');

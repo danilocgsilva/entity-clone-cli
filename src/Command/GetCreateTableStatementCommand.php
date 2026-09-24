@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
     name: 'app:get-create-table-statement',
@@ -32,7 +33,7 @@ class GetCreateTableStatementCommand extends BaseCommand
         $io->title('Create Table Statement');
 
         try {
-            $entityManager = $this->createEntityManager();
+            $entityManager = Helpers::createEntityManager();
 
             $connectionId = $this->askConnectionId($input, $io, $entityManager);
             if (!$connectionId) return Command::FAILURE;

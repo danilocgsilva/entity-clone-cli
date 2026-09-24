@@ -12,6 +12,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Question\Question;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
+use Danilocgsilva\EntityCloneCli\Helpers;
+use Exception;
 
 #[AsCommand(
     name: 'app:update-connection',
@@ -39,9 +41,8 @@ class UpdateConnectionCommand extends BaseCommand
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID to update:');
             if (!$connectionId) return Command::FAILURE;
 
-            $entityManager = $this->createEntityManager();
+            $entityManager = Helpers::createEntityManager();
 
-            // Find the connection
             $databaseAccess = $entityManager->getRepository(DatabaseAccess::class)->find($connectionId);
             
             if (!$databaseAccess) {
@@ -52,7 +53,6 @@ class UpdateConnectionCommand extends BaseCommand
             /** @var \Symfony\Component\Console\Helper\QuestionHelper */
             $helper = $this->getHelper('question');
 
-            // Connection name (optional)
             $connectionNameQuestion = new Question(
                 'Enter the connection name (leave empty to keep current): ',
                 $databaseAccess->getName()
@@ -67,7 +67,6 @@ class UpdateConnectionCommand extends BaseCommand
                 $connectionName = $databaseAccess->getName();
             }
 
-            // Host (optional)
             $hostQuestion = new Question(
                 'Enter the host (leave empty to keep current): ',
                 $databaseAccess->getHost()
@@ -82,7 +81,6 @@ class UpdateConnectionCommand extends BaseCommand
                 $host = $databaseAccess->getHost();
             }
 
-            // User (optional)
             $userQuestion = new Question(
                 'Enter the user (leave empty to keep current): ',
                 $databaseAccess->getUser()
@@ -97,7 +95,6 @@ class UpdateConnectionCommand extends BaseCommand
                 $user = $databaseAccess->getUser();
             }
 
-            // Database (optional)
             $dbQuestion = new Question(
                 'Enter the database name (leave empty to keep current): ',
                 $databaseAccess->getDatabaseName() ?? ''
@@ -112,7 +109,6 @@ class UpdateConnectionCommand extends BaseCommand
                 $databaseName = $databaseAccess->getDatabaseName();
             }
 
-            // Password (optional - hidden input)
             $passwordQuestion = new Question('Enter the password (leave empty to keep current): ');
             $passwordQuestion->setHidden(true);
             $passwordQuestion->setHiddenFallback(false);
@@ -127,7 +123,6 @@ class UpdateConnectionCommand extends BaseCommand
                 $password = $databaseAccess->getPassword();
             }
 
-            // Port (optional with default)
             $portQuestion = new Question(
                 'Enter the port [default: 3306] (leave empty to keep current): ',
                 (string)$databaseAccess->getPort()
@@ -137,7 +132,6 @@ class UpdateConnectionCommand extends BaseCommand
                 $port = (string)$databaseAccess->getPort();
             }
 
-            // Summary
             $output->writeln('<info>Connection details to be updated:</info>');
             $output->writeln([
                 'ID: <comment>' . $connectionId . '</comment>',
@@ -148,7 +142,6 @@ class UpdateConnectionCommand extends BaseCommand
                 'Port: <comment>' . $port . '</comment>',
             ]);
 
-            // Update the connection
             $databaseAccess
                 ->setName($connectionName)
                 ->setHost($host)
@@ -162,11 +155,9 @@ class UpdateConnectionCommand extends BaseCommand
             $io->success("Database connection '{$connectionName}' (ID: {$connectionId}) updated successfully.");
             return Command::SUCCESS;
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $io->error('Error updating database connection: ' . $e->getMessage());
             return Command::FAILURE;
         }
-
-        return Command::SUCCESS;
     }
 }
