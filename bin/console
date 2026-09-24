@@ -4,22 +4,22 @@
 require dirname(__DIR__).'/vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
-use Danilocgsilva\EntityCloneCli\CloneRecordCommand;
-use Danilocgsilva\EntityCloneCli\CompareTablesCommand;
-use Danilocgsilva\EntityCloneCli\DeleteConnectionCommand;
-use Danilocgsilva\EntityCloneCli\ListFieldsCommand;
-use Danilocgsilva\EntityCloneCli\ListConnectionsCommand;
-use Danilocgsilva\EntityCloneCli\ListTablesCommand;
-use Danilocgsilva\EntityCloneCli\ListDatabasesCommand;
-use Danilocgsilva\EntityCloneCli\RegisterConnectionCommand;
-use Danilocgsilva\EntityCloneCli\TestConnectionCommand;
-use Danilocgsilva\EntityCloneCli\UpdateConnectionCommand;
-use Danilocgsilva\EntityCloneCli\ShowForeignKeysCommand;
-use Danilocgsilva\EntityCloneCli\CompareDatabasesCommand;
-use Danilocgsilva\EntityCloneCli\CreateTableFromSourceCommand;
-use Danilocgsilva\EntityCloneCli\GetCreateTableStatementCommand;
-use Danilocgsilva\EntityCloneCli\CreateMissingDatabaseCommand;
-use Danilocgsilva\EntityCloneCli\SyncDatabasesCommand;
+use Danilocgsilva\EntityCloneCli\Command\CloneRecordCommand;
+use Danilocgsilva\EntityCloneCli\Command\CompareTablesCommand;
+use Danilocgsilva\EntityCloneCli\Command\DeleteConnectionCommand;
+use Danilocgsilva\EntityCloneCli\Command\ListFieldsCommand;
+use Danilocgsilva\EntityCloneCli\Command\ListConnectionsCommand;
+use Danilocgsilva\EntityCloneCli\Command\ListTablesCommand;
+use Danilocgsilva\EntityCloneCli\Command\ListDatabasesCommand;
+use Danilocgsilva\EntityCloneCli\Command\RegisterConnectionCommand;
+use Danilocgsilva\EntityCloneCli\Command\TestConnectionCommand;
+use Danilocgsilva\EntityCloneCli\Command\UpdateConnectionCommand;
+use Danilocgsilva\EntityCloneCli\Command\ShowForeignKeysCommand;
+use Danilocgsilva\EntityCloneCli\Command\CompareDatabasesCommand;
+use Danilocgsilva\EntityCloneCli\Command\CreateTableFromSourceCommand;
+use Danilocgsilva\EntityCloneCli\Command\GetCreateTableStatementCommand;
+use Danilocgsilva\EntityCloneCli\Command\CreateMissingDatabaseCommand;
+use Danilocgsilva\EntityCloneCli\Command\SyncDatabasesCommand;
 
 $application = new Application('My CLI App', '1.0.0');
 
