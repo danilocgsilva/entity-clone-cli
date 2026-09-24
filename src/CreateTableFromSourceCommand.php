@@ -11,6 +11,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
+use Exception;
+use RuntimeException;
 
 #[AsCommand(
     name: 'db:table:create-from-source',
@@ -33,36 +35,42 @@ class CreateTableFromSourceCommand extends BaseCommand
         $io->title('Create Table from Source Database');
 
         $sourceConnectionId = $this->requireOption($input, $io, 'source-connection', 'Enter source connection ID:');
-        if (!$sourceConnectionId) return Command::FAILURE;
+        if (!$sourceConnectionId) {
+            return Command::FAILURE;
+        }
 
         $targetConnectionId = $this->requireOption($input, $io, 'target-connection', 'Enter target connection ID:');
-        if (!$targetConnectionId) return Command::FAILURE;
+        if (!$targetConnectionId) {
+            return Command::FAILURE;
+        }
 
         $databaseName = $this->requireOption($input, $io, 'database-name', 'Enter database name:');
-        if (!$databaseName) return Command::FAILURE;
+        if (!$databaseName) {
+            return Command::FAILURE;
+        }
 
         $tableName = $this->requireOption($input, $io, 'table-name', 'Enter table name:');
-        if (!$tableName) return Command::FAILURE;
+        if (!$tableName) {
+            return Command::FAILURE;
+        }
 
         try {
             $entityManager = $this->createEntityManager();
 
-            // Validate connections exist
             $sourceConnection = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class)
                 ->find($sourceConnectionId);
             
             if (!$sourceConnection) {
-                throw new \RuntimeException("Source connection with ID {$sourceConnectionId} not found");
+                throw new RuntimeException("Source connection with ID {$sourceConnectionId} not found");
             }
 
             $targetConnection = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class)
                 ->find($targetConnectionId);
             
             if (!$targetConnection) {
-                throw new \RuntimeException("Target connection with ID {$targetConnectionId} not found");
+                throw new RuntimeException("Target connection with ID {$targetConnectionId} not found");
             }
 
-            // Create the table
             Domain::createTableFromSource(
                 (int) $sourceConnectionId,
                 (int) $targetConnectionId,
@@ -73,7 +81,7 @@ class CreateTableFromSourceCommand extends BaseCommand
 
             $io->success("Table '{$tableName}' successfully created in database '{$databaseName}' from source connection");
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $io->error("Error creating table: " . $e->getMessage());
             return Command::FAILURE;
         }
