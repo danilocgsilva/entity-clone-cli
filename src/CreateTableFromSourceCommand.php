@@ -36,25 +36,12 @@ class CreateTableFromSourceCommand extends BaseCommand
         $io = new SymfonyStyle($input, $output);
         $io->title('Create Table from Source Database');
 
-        $sourceConnectionId = $this->requireOption($input, $io, 'source-connection', 'Enter source connection ID:');
-        if (!$sourceConnectionId) {
+        $options = $this->initializeOptions($input, $io);
+        if ($options === null) {
             return Command::FAILURE;
         }
 
-        $targetConnectionId = $this->requireOption($input, $io, 'target-connection', 'Enter target connection ID:');
-        if (!$targetConnectionId) {
-            return Command::FAILURE;
-        }
-
-        $databaseName = $this->requireOption($input, $io, 'database-name', 'Enter database name:');
-        if (!$databaseName) {
-            return Command::FAILURE;
-        }
-
-        $tableName = $this->requireOption($input, $io, 'table-name', 'Enter table name:');
-        if (!$tableName) {
-            return Command::FAILURE;
-        }
+        [$sourceConnectionId, $targetConnectionId, $databaseName, $tableName] = $options;
 
         try {
             $entityManager = $this->createEntityManager();
@@ -84,6 +71,9 @@ class CreateTableFromSourceCommand extends BaseCommand
             $io->success("Table '{$tableName}' successfully created in database '{$databaseName}' from source connection");
             return Command::SUCCESS;
         } catch (TargetTableAlreadyExists $e) {
+            print("------\n");
+            print("Caí aqui 2\n");
+            print("------\n");
             $io->warning("Table '{$tableName}' already exists in database '{$databaseName}'. No action taken.");
             return Command::SUCCESS;
         } catch (MissingTargetDatabase $e) {
@@ -93,5 +83,35 @@ class CreateTableFromSourceCommand extends BaseCommand
             $io->error("Error creating table: " . $e->getMessage());
             return Command::FAILURE;
         }
+    }
+
+    private function initializeOptions(InputInterface $input, SymfonyStyle $io): ?array
+    {
+        $sourceConnectionId = $this->requireOption($input, $io, 'source-connection', 'Enter source connection ID:');
+        if (!$sourceConnectionId) {
+            return null;
+        }
+
+        $targetConnectionId = $this->requireOption($input, $io, 'target-connection', 'Enter target connection ID:');
+        if (!$targetConnectionId) {
+            return null;
+        }
+
+        $databaseName = $this->requireOption($input, $io, 'database-name', 'Enter database name:');
+        if (!$databaseName) {
+            return null;
+        }
+
+        $tableName = $this->requireOption($input, $io, 'table-name', 'Enter table name:');
+        if (!$tableName) {
+            return null;
+        }
+
+        return [
+            (int) $sourceConnectionId,
+            (int) $targetConnectionId,
+            $databaseName,
+            $tableName
+        ];
     }
 }
