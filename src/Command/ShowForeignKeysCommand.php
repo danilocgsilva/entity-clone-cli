@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Danilocgsilva\EntityCloneCli;
+namespace Danilocgsilva\EntityCloneCli\Command;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -77,6 +77,7 @@ class ShowForeignKeysCommand extends BaseCommand
 
     private function initializeOptions(InputInterface $input, SymfonyStyle $io): ?array
     {
+        
         $connectionId = $this->requireOption($input, $io, 'connection-id', 'Enter connection ID:');
         if (!$connectionId) {
             return null;

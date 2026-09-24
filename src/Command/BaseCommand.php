@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Danilocgsilva\EntityCloneCli;
+namespace Danilocgsilva\EntityCloneCli\Command;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -32,6 +32,50 @@ abstract class BaseCommand extends Command
             return null;
         }
         return $value;
+    }
+
+    /**
+     * Ask for an option value from a list of options by number selection
+     *
+     * @param InputInterface $input
+     * @param SymfonyStyle $io
+     * @param string $option The option name to check
+     * @param string $question The question to ask the user
+     * @param array $options List of available options
+     * @return string|null The selected option value or null on failure
+     */
+    protected function requireOptionByNumber(
+        InputInterface $input, 
+        SymfonyStyle $io, 
+        string $option, 
+        string $question, 
+        array $options
+    ): ?string {
+        $value = $input->getOption($option);
+        if ($value) {
+            if (!in_array($value, $options)) {
+                $io->error("Provided value '{$value}' is not in the available options.");
+                return null;
+            }
+            return $value;
+        }
+
+        if (empty($options)) {
+            $io->error('No options available for selection.');
+            return null;
+        }
+
+        foreach ($options as $index => $optionValue) {
+            $io->writeln(sprintf('%d. %s', $index + 1, $optionValue));
+        }
+
+        $pick = (int) $io->ask($question);
+        if ($pick < 1 || $pick > count($options)) {
+            $io->error('Invalid selection.');
+            return null;
+        }
+
+        return $options[$pick - 1];
     }
 
     protected function askDatabaseName(InputInterface $input, SymfonyStyle $io, \PDO $pdo): ?string

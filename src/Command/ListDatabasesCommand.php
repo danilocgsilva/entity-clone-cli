@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Danilocgsilva\EntityCloneCli;
+namespace Danilocgsilva\EntityCloneCli\Command;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -11,12 +11,13 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
+use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 
 #[AsCommand(
-    name: 'app:list-tables',
-    description: 'List all tables from a database.'
+    name: 'app:list-databases',
+    description: 'List all databases from a database connection.'
 )]
-class ListTablesCommand extends BaseCommand
+class ListDatabasesCommand extends BaseCommand
 {
     protected function configure(): void
     {
@@ -26,49 +27,35 @@ class ListTablesCommand extends BaseCommand
                 'c',
                 InputOption::VALUE_REQUIRED,
                 'Database connection ID'
-            )
-            ->addOption(
-                'database-name',
-                'd',
-                InputOption::VALUE_REQUIRED,
-                'Database name to list tables from'
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $io->title('Database Tables List');
+        $io->title('Database Connection Databases List');
 
         try {
-            // Get connection ID and database name from input
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID');
             if (!$connectionId) return Command::FAILURE;
 
-            $databaseName = $this->requireOption($input, $io, 'database-name', 'Please enter the database name');
-            if (!$databaseName) return Command::FAILURE;
-
             $entityManager = $this->createEntityManager();
 
-            // Get PDO connection from database access ID
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
 
-            // Get tables from database
-            $tables = Domain::listTables($pdo, $databaseName);
+            $databases = Domain::listDatabases($pdo, true);
 
-            if (empty($tables)) {
-                $io->info("No tables found in database '{$databaseName}' for connection {$connectionId}.");
+            if (empty($databases)) {
+                $io->info("No databases found for connection {$connectionId}.");
                 return Command::SUCCESS;
             }
 
-            // Sort tables alphabetically
-            sort($tables);
+            sort($databases);
 
-            // Display tables as a list
-            $io->listing($tables);
+            $io->listing($databases);
 
         } catch (\Exception $e) {
-            $io->error('Error retrieving database tables: ' . $e->getMessage());
+            $io->error('Error retrieving databases: ' . $e->getMessage());
             return Command::FAILURE;
         }
 
