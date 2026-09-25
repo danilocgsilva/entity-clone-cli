@@ -23,7 +23,8 @@ use Danilocgsilva\EntityCloneCli\Command\{
     CreateMissingDatabaseCommand,
     SyncDatabasesCommand,
     TestAllConnectionsCommand,
-    CreateDatabaseCommand
+    CreateDatabaseCommand,
+    ListDatabaseSizesCommand
 };
 
 $application = new Application('My CLI App', '1.0.0');
@@ -49,6 +50,7 @@ $application->addCommands([
     new SyncDatabasesCommand($databaseConnectionLister),
     new TestAllConnectionsCommand($databaseConnectionLister),
     new CreateDatabaseCommand(),
+    new ListDatabaseSizesCommand($databaseConnectionLister)
 ]);
 
 $application->run();
