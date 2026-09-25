@@ -33,6 +33,7 @@ class CompareDatabasesCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $io->title('Databases Comparison');
 
+        /** @var \Symfony\Component\Console\Helper\QuestionHelper */
         $helper = $this->getHelper('question');
 
         try {
