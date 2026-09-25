@@ -4,25 +4,26 @@
 require dirname(__DIR__).'/vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
-use Danilocgsilva\EntityCloneCli\Command\CloneRecordCommand;
-use Danilocgsilva\EntityCloneCli\Command\CompareTablesCommand;
-use Danilocgsilva\EntityCloneCli\Command\DeleteConnectionCommand;
-use Danilocgsilva\EntityCloneCli\Command\ListFieldsCommand;
-use Danilocgsilva\EntityCloneCli\Command\ListConnectionsCommand;
-use Danilocgsilva\EntityCloneCli\Command\ListTablesCommand;
-use Danilocgsilva\EntityCloneCli\Command\ListDatabasesCommand;
-use Danilocgsilva\EntityCloneCli\Command\RegisterConnectionCommand;
-use Danilocgsilva\EntityCloneCli\Command\TestConnectionCommand;
-use Danilocgsilva\EntityCloneCli\Command\UpdateConnectionCommand;
-use Danilocgsilva\EntityCloneCli\Command\ShowForeignKeysCommand;
-use Danilocgsilva\EntityCloneCli\Command\CompareDatabasesCommand;
-use Danilocgsilva\EntityCloneCli\Command\CreateTableFromSourceCommand;
-use Danilocgsilva\EntityCloneCli\Command\GetCreateTableStatementCommand;
-use Danilocgsilva\EntityCloneCli\Command\CreateMissingDatabaseCommand;
-use Danilocgsilva\EntityCloneCli\Command\SyncDatabasesCommand;
-use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
-use Danilocgsilva\EntityCloneCli\Command\TestAllConnectionsCommand;
-use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\{DatabaseConnectionLister, Helpers};
+use Danilocgsilva\EntityCloneCli\Command\{
+    CloneRecordCommand,
+    CompareTablesCommand,
+    DeleteConnectionCommand,
+    ListFieldsCommand,
+    ListConnectionsCommand,
+    ListTablesCommand,
+    ListDatabasesCommand,
+    RegisterConnectionCommand,
+    TestConnectionCommand,
+    UpdateConnectionCommand,
+    ShowForeignKeysCommand,
+    CompareDatabasesCommand,
+    CreateTableFromSourceCommand,
+    GetCreateTableStatementCommand,
+    CreateMissingDatabaseCommand,
+    SyncDatabasesCommand,
+    TestAllConnectionsCommand
+};
 
 $application = new Application('My CLI App', '1.0.0');
 
