@@ -12,6 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
+use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
@@ -20,6 +21,14 @@ use Danilocgsilva\EntityCloneCli\Helpers;
 )]
 class DeleteConnectionCommand extends BaseCommand
 {
+    private DatabaseConnectionLister $connectionLister;
+
+    public function __construct(DatabaseConnectionLister $connectionLister)
+    {
+        $this->connectionLister = $connectionLister;
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this
@@ -37,6 +46,9 @@ class DeleteConnectionCommand extends BaseCommand
         $io->title('Delete Database Connection');
 
         try {
+            // First list all connections
+            $this->connectionLister->listConnections($io);
+            
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID to delete:');
             if (!$connectionId) return Command::FAILURE;
 

@@ -21,6 +21,7 @@ use Danilocgsilva\EntityCloneCli\Command\GetCreateTableStatementCommand;
 use Danilocgsilva\EntityCloneCli\Command\CreateMissingDatabaseCommand;
 use Danilocgsilva\EntityCloneCli\Command\SyncDatabasesCommand;
 use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
+use Danilocgsilva\EntityCloneCli\Command\TestAllConnectionsCommand;
 use Danilocgsilva\EntityCloneCli\Helpers;
 
 $application = new Application('My CLI App', '1.0.0');
@@ -30,7 +31,7 @@ $databaseConnectionLister = new DatabaseConnectionLister(Helpers::createEntityMa
 $application->addCommands([
     new CloneRecordCommand(),
     new CompareTablesCommand(),
-    new DeleteConnectionCommand(),
+    new DeleteConnectionCommand($databaseConnectionLister),
     new ListConnectionsCommand($databaseConnectionLister),
     new ListFieldsCommand(),
     new ListTablesCommand(),
@@ -44,6 +45,7 @@ $application->addCommands([
     new GetCreateTableStatementCommand(),
     new CreateMissingDatabaseCommand(),
     new SyncDatabasesCommand(),
+    new TestAllConnectionsCommand($databaseConnectionLister)
 ]);
 
 $application->run();
