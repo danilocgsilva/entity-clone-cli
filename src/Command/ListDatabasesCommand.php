@@ -12,6 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
+use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
@@ -20,6 +21,14 @@ use Danilocgsilva\EntityCloneCli\Helpers;
 )]
 class ListDatabasesCommand extends BaseCommand
 {
+    private DatabaseConnectionLister $connectionLister;
+
+    public function __construct(DatabaseConnectionLister $connectionLister)
+    {
+        $this->connectionLister = $connectionLister;
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this
@@ -37,6 +46,8 @@ class ListDatabasesCommand extends BaseCommand
         $io->title('Database Connection Databases List');
 
         try {
+            $this->connectionLister->listConnections($io);
+            
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID');
             if (!$connectionId) return Command::FAILURE;
 

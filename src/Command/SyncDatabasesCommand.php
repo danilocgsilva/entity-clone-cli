@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
+use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
@@ -19,6 +20,14 @@ use Danilocgsilva\EntityCloneCli\Helpers;
 )]
 class SyncDatabasesCommand extends BaseCommand
 {
+    private DatabaseConnectionLister $connectionLister;
+
+    public function __construct(DatabaseConnectionLister $connectionLister)
+    {
+        $this->connectionLister = $connectionLister;
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this
@@ -32,6 +41,9 @@ class SyncDatabasesCommand extends BaseCommand
         $io->title('Database Synchronization');
 
         try {
+            // First list all connections
+            $this->connectionLister->listConnections($io);
+            
             $sourceConnectionId = (int) $this->requireOption($input, $io, 'source-connection-id', 'Please enter the source database connection ID');
             if (!$sourceConnectionId) return Command::FAILURE;
 

@@ -22,7 +22,8 @@ use Danilocgsilva\EntityCloneCli\Command\{
     GetCreateTableStatementCommand,
     CreateMissingDatabaseCommand,
     SyncDatabasesCommand,
-    TestAllConnectionsCommand
+    TestAllConnectionsCommand,
+    CreateDatabaseCommand
 };
 
 $application = new Application('My CLI App', '1.0.0');
@@ -36,7 +37,7 @@ $application->addCommands([
     new ListConnectionsCommand($databaseConnectionLister),
     new ListFieldsCommand(),
     new ListTablesCommand(),
-    new ListDatabasesCommand(),
+    new ListDatabasesCommand($databaseConnectionLister),
     new RegisterConnectionCommand(),
     new TestConnectionCommand($databaseConnectionLister),
     new UpdateConnectionCommand(),
@@ -45,8 +46,9 @@ $application->addCommands([
     new CreateTableFromSourceCommand(),
     new GetCreateTableStatementCommand(),
     new CreateMissingDatabaseCommand(),
-    new SyncDatabasesCommand(),
-    new TestAllConnectionsCommand($databaseConnectionLister)
+    new SyncDatabasesCommand($databaseConnectionLister),
+    new TestAllConnectionsCommand($databaseConnectionLister),
+    new CreateDatabaseCommand(),
 ]);
 
 $application->run();
