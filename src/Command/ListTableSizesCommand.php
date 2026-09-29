@@ -12,6 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
+use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 use Danilocgsilva\EntityCloneCli\Helpers;
 use Exception;
 
@@ -21,6 +22,14 @@ use Exception;
 )]
 class ListTableSizesCommand extends BaseCommand
 {
+    private DatabaseConnectionLister $connectionLister;
+
+    public function __construct(DatabaseConnectionLister $connectionLister)
+    {
+        $this->connectionLister = $connectionLister;
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this
@@ -44,6 +53,8 @@ class ListTableSizesCommand extends BaseCommand
         $io->title('Database Table Sizes List');
 
         try {
+            $this->connectionLister->listConnections($io);
+
             $entityManager = Helpers::createEntityManager();
             $repository = $entityManager->getRepository(DatabaseAccess::class);
 

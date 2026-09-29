@@ -54,7 +54,7 @@ $application->addCommands([
     new CreateDatabaseCommand(),
     new ListDatabaseSizesCommand($databaseConnectionLister),
     new ListTableEntryCountsCommand(),
-    new ListTableSizesCommand()
+    new ListTableSizesCommand($databaseConnectionLister)
 ]);
 
 $application->run();

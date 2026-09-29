@@ -46,7 +46,6 @@ class DeleteConnectionCommand extends BaseCommand
         $io->title('Delete Database Connection');
 
         try {
-            // First list all connections
             $this->connectionLister->listConnections($io);
             
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID to delete:');
