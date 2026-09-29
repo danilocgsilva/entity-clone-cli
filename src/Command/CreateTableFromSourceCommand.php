@@ -18,7 +18,7 @@ use Danilocgsilva\EntityClone\Exceptions\TargetTableAlreadyExists;
 use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
-    name: 'db:table:create-from-source',
+    name: 'app:table:create-from-source',
     description: 'Create a table in target database from source database structure'
 )]
 class CreateTableFromSourceCommand extends BaseCommand

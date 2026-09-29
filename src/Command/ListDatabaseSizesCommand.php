@@ -16,7 +16,7 @@ use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
-    name: 'app:list-database-sizes',
+    name: 'anatomy:list-database-sizes',
     description: 'Show the size of all databases for a connection.'
 )]
 class ListDatabaseSizesCommand extends BaseCommand

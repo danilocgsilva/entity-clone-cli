@@ -17,7 +17,7 @@ use Danilocgsilva\EntityCloneCli\Helpers;
 use Exception;
 
 #[AsCommand(
-    name: 'app:list-table-sizes',
+    name: 'anatomy:list-table-sizes',
     description: 'List all tables and their sizes from a database connection.'
 )]
 class ListTableSizesCommand extends BaseCommand
@@ -47,7 +47,6 @@ class ListTableSizesCommand extends BaseCommand
         $io->title('Database Table Sizes List');
 
         try {
-            // First list all connections
             $this->connectionLister->listConnections($io);
 
             $entityManager = Helpers::createEntityManager();
@@ -66,7 +65,6 @@ class ListTableSizesCommand extends BaseCommand
 
             $pdo = Domain::createPdoFromDatabaseConnectionEntity($databaseAccess);
 
-            // List available databases
             $stmt = $pdo->prepare('SHOW DATABASES');
             $stmt->execute();
             
@@ -77,13 +75,11 @@ class ListTableSizesCommand extends BaseCommand
                 return Command::FAILURE;
             }
 
-            // Show numbered list of databases
             $io->writeln('Available databases:');
             foreach ($databases as $index => $database) {
                 $io->writeln(($index + 1) . '. ' . $database);
             }
             
-            // Ask user to select database by number
             $databaseChoice = $io->ask('Enter the number of the database you want to list tables from:', null, function ($value) use ($databases) {
                 $index = (int) $value - 1;
                 if ($index < 0 || $index >= count($databases)) {
@@ -98,7 +94,6 @@ class ListTableSizesCommand extends BaseCommand
 
             $databaseName = $databaseChoice;
 
-            // Verify database exists
             $stmt = $pdo->prepare('SHOW DATABASES LIKE ?');
             $stmt->execute([$databaseName]);
             

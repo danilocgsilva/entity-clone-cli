@@ -13,9 +13,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\Helpers;
+use Exception;
 
 #[AsCommand(
-    name: 'app:list-table-entry-counts',
+    name: 'anatomy:list-table-entry-counts',
     description: 'List all tables and their entry counts from a database connection.'
 )]
 class ListTableEntryCountsCommand extends BaseCommand
@@ -87,7 +88,7 @@ class ListTableEntryCountsCommand extends BaseCommand
 
             $io->table(['Table', 'Count'], $tableCounts);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $io->error('Error retrieving table entry counts: ' . $e->getMessage());
             return Command::FAILURE;
         }
