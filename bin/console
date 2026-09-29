@@ -34,7 +34,7 @@ $application = new Application('My CLI App', '1.0.0');
 $databaseConnectionLister = new DatabaseConnectionLister(Helpers::createEntityManager());
 
 $application->addCommands([
-    new CloneRecordCommand(),
+    new CloneRecordCommand($databaseConnectionLister),
     new CompareTablesCommand(),
     new DeleteConnectionCommand($databaseConnectionLister),
     new ListConnectionsCommand($databaseConnectionLister),

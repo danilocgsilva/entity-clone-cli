@@ -12,6 +12,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
+use Exception;
 
 #[AsCommand(
     name: 'app:clone-record',
@@ -19,6 +21,14 @@ use Danilocgsilva\EntityCloneCli\Helpers;
 )]
 class CloneRecordCommand extends BaseCommand
 {
+    private DatabaseConnectionLister $connectionLister;
+
+    public function __construct(DatabaseConnectionLister $connectionLister)
+    {
+        $this->connectionLister = $connectionLister;
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this
@@ -56,7 +66,10 @@ class CloneRecordCommand extends BaseCommand
         try {
             $entityManager = Helpers::createEntityManager();
 
-            // Get database names from options or ask user if not provided
+            $io->section('Available Database Connections');
+            $this->connectionLister->listConnections($io);
+            $io->newLine();
+
             $sourceDatabaseName = $this->requireOption($input, $io, 'source-database-name', 'Enter source database name');
             if (!$sourceDatabaseName) return Command::FAILURE;
 
@@ -69,8 +82,6 @@ class CloneRecordCommand extends BaseCommand
             $recordId = (int) $this->requireOption($input, $io, 'record-id', 'Enter ID of the record to clone');
             if (!$recordId) return Command::FAILURE;
 
-            // Get PDO connections - this assumes we have a way to get connection IDs from database names
-            // We need to find the connection IDs by querying the DatabaseAccess entities
             $sourceConnectionId = $this->getConnectionIdFromDatabaseName($sourceDatabaseName, $entityManager);
             $targetConnectionId = $this->getConnectionIdFromDatabaseName($targetDatabaseName, $entityManager);
             
@@ -79,11 +90,9 @@ class CloneRecordCommand extends BaseCommand
                 return Command::FAILURE;
             }
 
-            // Get PDO connections from database access IDs
             $sourcePdo = Domain::getPdoFromDatabaseAccessId($sourceConnectionId, $entityManager);
             $targetPdo = Domain::getPdoFromDatabaseAccessId($targetConnectionId, $entityManager);
 
-            // Validate that databases exist and are accessible
             $sourceDatabases = Domain::listDatabases($sourcePdo, true);
             if (!in_array($sourceDatabaseName, $sourceDatabases)) {
                 $io->error("Source database '{$sourceDatabaseName}' not found");
@@ -96,14 +105,12 @@ class CloneRecordCommand extends BaseCommand
                 return Command::FAILURE;
             }
 
-            // Validate that table exists in source database
             $sourceTables = Domain::listTables($sourcePdo, $sourceDatabaseName);
             if (!in_array($tableName, $sourceTables)) {
                 $io->error("Table '{$tableName}' not found in database '{$sourceDatabaseName}'");
                 return Command::FAILURE;
             }
 
-            // Clone the record
             $success = Domain::cloneRecordSecure($sourcePdo, $targetPdo, $tableName, $recordId);
 
             if ($success) {
@@ -114,7 +121,7 @@ class CloneRecordCommand extends BaseCommand
                 return Command::FAILURE;
             }
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $io->error('Error cloning record: ' . $e->getMessage());
             return Command::FAILURE;
         }
@@ -122,21 +129,18 @@ class CloneRecordCommand extends BaseCommand
 
     private function getConnectionIdFromDatabaseName(string $databaseName, $entityManager): ?int
     {
-        // Find all DatabaseAccess entities and check if they have this database name
         $repository = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class);
         $databaseAccesses = $repository->findAll();
         
         foreach ($databaseAccesses as $dbAccess) {
             try {
-                // Create a PDO connection to test if this access has the database
                 $pdo = Domain::createPdoFromDatabaseConnectionEntity($dbAccess);
                 $databases = Domain::listDatabases($pdo, true);
                 
                 if (in_array($databaseName, $databases)) {
                     return $dbAccess->getId();
                 }
-            } catch (\Exception $e) {
-                // Skip this connection if it fails
+            } catch (Exception $e) {
                 continue;
             }
         }
