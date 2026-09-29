@@ -38,12 +38,6 @@ class ListTableSizesCommand extends BaseCommand
                 'c',
                 InputOption::VALUE_REQUIRED,
                 'Database connection ID'
-            )
-            ->addOption(
-                'database-name',
-                'd',
-                InputOption::VALUE_REQUIRED,
-                'Database name to list tables from'
             );
     }
 
@@ -53,6 +47,7 @@ class ListTableSizesCommand extends BaseCommand
         $io->title('Database Table Sizes List');
 
         try {
+            // First list all connections
             $this->connectionLister->listConnections($io);
 
             $entityManager = Helpers::createEntityManager();
@@ -69,13 +64,41 @@ class ListTableSizesCommand extends BaseCommand
                 return Command::FAILURE;
             }
 
-            $databaseName = $this->requireOption($input, $io, 'database-name', 'Please enter the database name:');
-            if (!$databaseName) {
+            $pdo = Domain::createPdoFromDatabaseConnectionEntity($databaseAccess);
+
+            // List available databases
+            $stmt = $pdo->prepare('SHOW DATABASES');
+            $stmt->execute();
+            
+            $databases = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            
+            if (empty($databases)) {
+                $io->error("No databases found in the connection.");
                 return Command::FAILURE;
             }
 
-            $pdo = Domain::createPdoFromDatabaseConnectionEntity($databaseAccess);
+            // Show numbered list of databases
+            $io->writeln('Available databases:');
+            foreach ($databases as $index => $database) {
+                $io->writeln(($index + 1) . '. ' . $database);
+            }
+            
+            // Ask user to select database by number
+            $databaseChoice = $io->ask('Enter the number of the database you want to list tables from:', null, function ($value) use ($databases) {
+                $index = (int) $value - 1;
+                if ($index < 0 || $index >= count($databases)) {
+                    throw new Exception('Invalid database number. Please select a valid number from the list.');
+                }
+                return $databases[$index];
+            });
 
+            if (!$databaseChoice) {
+                return Command::FAILURE;
+            }
+
+            $databaseName = $databaseChoice;
+
+            // Verify database exists
             $stmt = $pdo->prepare('SHOW DATABASES LIKE ?');
             $stmt->execute([$databaseName]);
             
