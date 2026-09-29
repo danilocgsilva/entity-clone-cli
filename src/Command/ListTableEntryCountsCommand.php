@@ -13,7 +13,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\Helpers;
-use Exception;
+use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 
 #[AsCommand(
     name: 'anatomy:list-table-entry-counts',
@@ -21,6 +21,14 @@ use Exception;
 )]
 class ListTableEntryCountsCommand extends BaseCommand
 {
+    private DatabaseConnectionLister $connectionLister;
+
+    public function __construct(DatabaseConnectionLister $connectionLister)
+    {
+        $this->connectionLister = $connectionLister;
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this
@@ -47,6 +55,10 @@ class ListTableEntryCountsCommand extends BaseCommand
             $entityManager = Helpers::createEntityManager();
             $repository = $entityManager->getRepository(DatabaseAccess::class);
 
+            // First list available connections
+            $io->section('Available Database Connections:');
+            $this->connectionLister->listConnections($io);
+            
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID:');
             if (!$connectionId) {
                 return Command::FAILURE;
@@ -88,7 +100,7 @@ class ListTableEntryCountsCommand extends BaseCommand
 
             $io->table(['Table', 'Count'], $tableCounts);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $io->error('Error retrieving table entry counts: ' . $e->getMessage());
             return Command::FAILURE;
         }

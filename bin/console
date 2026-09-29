@@ -53,7 +53,7 @@ $application->addCommands([
     new TestAllConnectionsCommand($databaseConnectionLister),
     new CreateDatabaseCommand(),
     new ListDatabaseSizesCommand($databaseConnectionLister),
-    new ListTableEntryCountsCommand(),
+    new ListTableEntryCountsCommand($databaseConnectionLister),
     new ListTableSizesCommand($databaseConnectionLister)
 ]);
 
