@@ -95,6 +95,28 @@ class CompareTablesCommand extends BaseCommand
                 $tableData
             );
 
+            // Show separate sections for each category
+            $io->section('Tables present just at the first connection');
+            if (!empty($onlyInFirst)) {
+                $io->listing($onlyInFirst);
+            } else {
+                $io->text('No tables found');
+            }
+
+            $io->section('Tables present just at the second connection');
+            if (!empty($onlyInSecond)) {
+                $io->listing($onlyInSecond);
+            } else {
+                $io->text('No tables found');
+            }
+
+            $io->section('Tables present at both connections');
+            if (!empty($commonTables)) {
+                $io->listing($commonTables);
+            } else {
+                $io->text('No tables found');
+            }
+
             // Show summary statistics
             $totalTables = count($allTables);
             $onlyInFirstCount = count($onlyInFirst);
