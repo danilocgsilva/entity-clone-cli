@@ -15,7 +15,7 @@ use Danilocgsilva\EntityClone\DatabaseWorks;
 use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
-    name: 'app:compare-tables',
+    name: 'anatomy:compare-tables',
     description: 'Compare tables between two database connections.'
 )]
 class CompareTablesCommand extends BaseCommand
@@ -78,20 +78,34 @@ class CompareTablesCommand extends BaseCommand
 
             $io->section("Comparison Results for '{$databaseName}'");
 
-            if (!empty($onlyInFirst)) {
-                $io->section('Tables only in first connection:');
-                $io->listing($onlyInFirst);
+            // Create a combined table with all tables
+            $allTables = array_unique(array_merge($tables1, $tables2));
+            sort($allTables);
+
+            $tableData = [];
+            foreach ($allTables as $table) {
+                $existsInFirst = in_array($table, $tables1) ? '✓' : '✗';
+                $existsInSecond = in_array($table, $tables2) ? '✓' : '✗';
+                $tableData[] = [$table, $existsInFirst, $existsInSecond];
             }
 
-            if (!empty($onlyInSecond)) {
-                $io->section('Tables only in second connection:');
-                $io->listing($onlyInSecond);
-            }
+            // Display results in table format
+            $io->table(
+                ['Table Name', 'Exists in Connection 1', 'Exists in Connection 2'],
+                $tableData
+            );
 
-            if (!empty($commonTables)) {
-                $io->section('Common tables:');
-                $io->listing($commonTables);
-            }
+            // Show summary statistics
+            $totalTables = count($allTables);
+            $onlyInFirstCount = count($onlyInFirst);
+            $onlyInSecondCount = count($onlyInSecond);
+            $commonCount = count($commonTables);
+
+            $io->section('Summary');
+            $io->writeln(sprintf('Total tables: %d', $totalTables));
+            $io->writeln(sprintf('Only in connection 1: %d', $onlyInFirstCount));
+            $io->writeln(sprintf('Only in connection 2: %d', $onlyInSecondCount));
+            $io->writeln(sprintf('Common to both: %d', $commonCount));
 
             if (empty($onlyInFirst) && empty($onlyInSecond) && empty($commonTables)) {
                 $io->info('Both databases have no tables.');

@@ -16,7 +16,7 @@ use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityClone\EntityManagerFactory;
 
 #[AsCommand(
-    name: 'app:compare-databases',
+    name: 'anatomy:compare-databases',
     description: 'Compare the list of databases between two connections.'
 )]
 class CompareDatabasesCommand extends Command

@@ -14,6 +14,7 @@ use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 use Danilocgsilva\EntityCloneCli\Helpers;
+use Exception;
 
 #[AsCommand(
     name: 'app:test-connection',
@@ -52,9 +53,9 @@ class TestConnectionCommand extends BaseCommand
             if (!$connectionId) {
                 return Command::FAILURE;
             }
-
+            
             $entityManager = Helpers::createEntityManager();
-
+            
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
 
             $connectionTestResult = Domain::testPdoConnection($pdo);
@@ -67,7 +68,7 @@ class TestConnectionCommand extends BaseCommand
                 return Command::FAILURE;
             }
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $io->error('Error testing database connection: ' . $e->getMessage());
             return Command::FAILURE;
         }
