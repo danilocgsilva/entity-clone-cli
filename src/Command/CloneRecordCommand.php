@@ -23,16 +23,16 @@ class CloneRecordCommand extends BaseCommand
     {
         $this
             ->addOption(
-                'source-connection-id',
-                'sc',
+                'source-database-name',
+                'sd',
                 InputOption::VALUE_REQUIRED,
-                'Source database connection ID'
+                'Source database name'
             )
             ->addOption(
-                'target-connection-id',
-                'tc',
+                'target-database-name',
+                'td',
                 InputOption::VALUE_REQUIRED,
-                'Target database connection ID'
+                'Target database name'
             )
             ->addOption(
                 'table-name',
@@ -56,11 +56,12 @@ class CloneRecordCommand extends BaseCommand
         try {
             $entityManager = Helpers::createEntityManager();
 
-            $sourceConnectionId = (int) $this->requireOption($input, $io, 'source-connection-id', 'Enter source database connection ID');
-            if (!$sourceConnectionId) return Command::FAILURE;
+            // Get database names from options or ask user if not provided
+            $sourceDatabaseName = $this->requireOption($input, $io, 'source-database-name', 'Enter source database name');
+            if (!$sourceDatabaseName) return Command::FAILURE;
 
-            $targetConnectionId = (int) $this->requireOption($input, $io, 'target-connection-id', 'Enter target database connection ID');
-            if (!$targetConnectionId) return Command::FAILURE;
+            $targetDatabaseName = $this->requireOption($input, $io, 'target-database-name', 'Enter target database name');
+            if (!$targetDatabaseName) return Command::FAILURE;
 
             $tableName = $this->requireOption($input, $io, 'table-name', 'Enter table name to clone record from');
             if (!$tableName) return Command::FAILURE;
@@ -68,9 +69,39 @@ class CloneRecordCommand extends BaseCommand
             $recordId = (int) $this->requireOption($input, $io, 'record-id', 'Enter ID of the record to clone');
             if (!$recordId) return Command::FAILURE;
 
+            // Get PDO connections - this assumes we have a way to get connection IDs from database names
+            // We need to find the connection IDs by querying the DatabaseAccess entities
+            $sourceConnectionId = $this->getConnectionIdFromDatabaseName($sourceDatabaseName, $entityManager);
+            $targetConnectionId = $this->getConnectionIdFromDatabaseName($targetDatabaseName, $entityManager);
+            
+            if (!$sourceConnectionId || !$targetConnectionId) {
+                $io->error('Could not find connection IDs for the specified databases');
+                return Command::FAILURE;
+            }
+
             // Get PDO connections from database access IDs
             $sourcePdo = Domain::getPdoFromDatabaseAccessId($sourceConnectionId, $entityManager);
             $targetPdo = Domain::getPdoFromDatabaseAccessId($targetConnectionId, $entityManager);
+
+            // Validate that databases exist and are accessible
+            $sourceDatabases = Domain::listDatabases($sourcePdo, true);
+            if (!in_array($sourceDatabaseName, $sourceDatabases)) {
+                $io->error("Source database '{$sourceDatabaseName}' not found");
+                return Command::FAILURE;
+            }
+
+            $targetDatabases = Domain::listDatabases($targetPdo, true);
+            if (!in_array($targetDatabaseName, $targetDatabases)) {
+                $io->error("Target database '{$targetDatabaseName}' not found");
+                return Command::FAILURE;
+            }
+
+            // Validate that table exists in source database
+            $sourceTables = Domain::listTables($sourcePdo, $sourceDatabaseName);
+            if (!in_array($tableName, $sourceTables)) {
+                $io->error("Table '{$tableName}' not found in database '{$sourceDatabaseName}'");
+                return Command::FAILURE;
+            }
 
             // Clone the record
             $success = Domain::cloneRecordSecure($sourcePdo, $targetPdo, $tableName, $recordId);
@@ -87,5 +118,29 @@ class CloneRecordCommand extends BaseCommand
             $io->error('Error cloning record: ' . $e->getMessage());
             return Command::FAILURE;
         }
+    }
+
+    private function getConnectionIdFromDatabaseName(string $databaseName, $entityManager): ?int
+    {
+        // Find all DatabaseAccess entities and check if they have this database name
+        $repository = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class);
+        $databaseAccesses = $repository->findAll();
+        
+        foreach ($databaseAccesses as $dbAccess) {
+            try {
+                // Create a PDO connection to test if this access has the database
+                $pdo = Domain::createPdoFromDatabaseConnectionEntity($dbAccess);
+                $databases = Domain::listDatabases($pdo, true);
+                
+                if (in_array($databaseName, $databases)) {
+                    return $dbAccess->getId();
+                }
+            } catch (\Exception $e) {
+                // Skip this connection if it fails
+                continue;
+            }
+        }
+        
+        return null;
     }
 }
