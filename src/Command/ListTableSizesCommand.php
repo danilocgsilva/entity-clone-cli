@@ -123,10 +123,23 @@ class ListTableSizesCommand extends BaseCommand
         foreach (Domain::listTableSizes($pdo, $databaseName) as $tableSize) {
             $tableSizes[] = [
                 'Table' => $tableSize['table'],
-                'Size' => number_format($tableSize['size'], 2) . ' bytes'
+                'Size' => $this->formatFileSize((float) $tableSize['size'])
             ];
         }
         return $tableSizes;
+    }
+
+    private function formatFileSize(float $bytes): string
+    {
+        if ($bytes < 1024) {
+            return (int) $bytes . ' bytes';
+        } elseif ($bytes < 1024 * 1024) {
+            return number_format($bytes / 1024, 2, '.', '') . ' KB';
+        } elseif ($bytes < 1024 * 1024 * 1024) {
+            return number_format($bytes / (1024 * 1024), 2, '.', '') . ' MB';
+        } else {
+            return number_format($bytes / (1024 * 1024 * 1024), 2, '.', '') . ' GB';
+        }
     }
 
     private function displayTableSizes(SymfonyStyle $io, array $tableSizes): void
