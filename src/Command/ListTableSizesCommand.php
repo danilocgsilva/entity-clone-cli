@@ -15,6 +15,7 @@ use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 use Danilocgsilva\EntityCloneCli\Helpers;
 use Exception;
+use PDO;
 
 #[AsCommand(
     name: 'anatomy:list-table-sizes',
@@ -64,58 +65,26 @@ class ListTableSizesCommand extends BaseCommand
             }
 
             $pdo = Domain::createPdoFromDatabaseConnectionEntity($databaseAccess);
-
-            $stmt = $pdo->prepare('SHOW DATABASES');
-            $stmt->execute();
             
-            $databases = $stmt->fetchAll(\PDO::FETCH_COLUMN);
-            
+            $databases = $this->getDatabasesList($pdo);
             if (empty($databases)) {
                 $io->error("No databases found in the connection.");
                 return Command::FAILURE;
             }
-
-            $io->writeln('Available databases:');
-            foreach ($databases as $index => $database) {
-                $io->writeln(($index + 1) . '. ' . $database);
-            }
             
-            $databaseChoice = $io->ask('Enter the number of the database you want to list tables from:', null, function ($value) use ($databases) {
-                $index = (int) $value - 1;
-                if ($index < 0 || $index >= count($databases)) {
-                    throw new Exception('Invalid database number. Please select a valid number from the list.');
-                }
-                return $databases[$index];
-            });
-
-            if (!$databaseChoice) {
+            $databaseName = $this->selectDatabase($io, $databases);
+            if (!$databaseName) {
                 return Command::FAILURE;
             }
 
-            $databaseName = $databaseChoice;
-
-            $stmt = $pdo->prepare('SHOW DATABASES LIKE ?');
-            $stmt->execute([$databaseName]);
+            $tableSizes = $this->getTableSizes($pdo, $databaseName);
             
-            if (!$stmt->fetch()) {
-                $io->error("Database '{$databaseName}' does not exist.");
-                return Command::FAILURE;
-            }
-
-            $tableSizes = [];
-            foreach (Domain::listTableSizes($pdo, $databaseName) as $tableSize) {
-                $tableSizes[] = [
-                    'Table' => $tableSize['table'],
-                    'Size' => number_format($tableSize['size'], 2) . ' bytes'
-                ];
-            }
-
             if (empty($tableSizes)) {
                 $io->info("No tables found in database '{$databaseName}'.");
                 return Command::SUCCESS;
             }
 
-            $io->table(['Table', 'Size'], $tableSizes);
+            $this->displayTableSizes($io, $tableSizes);
 
         } catch (Exception $e) {
             $io->error('Error retrieving table sizes: ' . $e->getMessage());
@@ -123,5 +92,45 @@ class ListTableSizesCommand extends BaseCommand
         }
 
         return Command::SUCCESS;
+    }
+
+    private function getDatabasesList(PDO $pdo): array
+    {
+        $stmt = $pdo->prepare('SHOW DATABASES');
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    private function selectDatabase(SymfonyStyle $io, array $databases): ?string
+    {
+        $io->writeln('Available databases:');
+        foreach ($databases as $index => $database) {
+            $io->writeln(($index + 1) . '. ' . $database);
+        }
+        
+        return $io->ask('Enter the number of the database you want to list tables from:', null, function ($value) use ($databases) {
+            $index = (int) $value - 1;
+            if ($index < 0 || $index >= count($databases)) {
+                throw new Exception('Invalid database number. Please select a valid number from the list.');
+            }
+            return $databases[$index];
+        });
+    }
+
+    private function getTableSizes(PDO $pdo, string $databaseName): array
+    {
+        $tableSizes = [];
+        foreach (Domain::listTableSizes($pdo, $databaseName) as $tableSize) {
+            $tableSizes[] = [
+                'Table' => $tableSize['table'],
+                'Size' => number_format($tableSize['size'], 2) . ' bytes'
+            ];
+        }
+        return $tableSizes;
+    }
+
+    private function displayTableSizes(SymfonyStyle $io, array $tableSizes): void
+    {
+        $io->table(['Table', 'Size'], $tableSizes);
     }
 }
