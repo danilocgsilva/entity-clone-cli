@@ -76,64 +76,9 @@ class CompareTablesCommand extends BaseCommand
             $onlyInSecond = array_diff($tables2, $tables1);
             $commonTables = array_intersect($tables1, $tables2);
 
-            $io->section("Comparison Results for '{$databaseName}'");
-
-            // Create a combined table with all tables
-            $allTables = array_unique(array_merge($tables1, $tables2));
-            sort($allTables);
-
-            $tableData = [];
-            foreach ($allTables as $table) {
-                $existsInFirst = in_array($table, $tables1) ? '✓' : '✗';
-                $existsInSecond = in_array($table, $tables2) ? '✓' : '✗';
-                $tableData[] = [$table, $existsInFirst, $existsInSecond];
-            }
-
-            // Display results in table format
-            $io->table(
-                ['Table Name', 'Exists in Connection 1', 'Exists in Connection 2'],
-                $tableData
-            );
-
-            // Show separate sections for each category
-            $io->section('Tables present just at the first connection');
-            if (!empty($onlyInFirst)) {
-                $io->listing($onlyInFirst);
-            } else {
-                $io->text('No tables found');
-            }
-
-            $io->section('Tables present just at the second connection');
-            if (!empty($onlyInSecond)) {
-                $io->listing($onlyInSecond);
-            } else {
-                $io->text('No tables found');
-            }
-
-            $io->section('Tables present at both connections');
-            if (!empty($commonTables)) {
-                $io->listing($commonTables);
-            } else {
-                $io->text('No tables found');
-            }
-
-            // Show summary statistics
-            $totalTables = count($allTables);
-            $onlyInFirstCount = count($onlyInFirst);
-            $onlyInSecondCount = count($onlyInSecond);
-            $commonCount = count($commonTables);
-
-            $io->section('Summary');
-            $io->writeln(sprintf('Total tables: %d', $totalTables));
-            $io->writeln(sprintf('Only in connection 1: %d', $onlyInFirstCount));
-            $io->writeln(sprintf('Only in connection 2: %d', $onlyInSecondCount));
-            $io->writeln(sprintf('Common to both: %d', $commonCount));
-
-            if (empty($onlyInFirst) && empty($onlyInSecond) && empty($commonTables)) {
-                $io->info('Both databases have no tables.');
-            } elseif (empty($onlyInFirst) && empty($onlyInSecond)) {
-                $io->success('Both connections have identical table sets.');
-            }
+            $this->displayTableComparison($io, $tables1, $tables2, $databaseName);
+            $this->displayCategorySections($io, $onlyInFirst, $onlyInSecond, $commonTables);
+            $this->displaySummary($io, $tables1, $tables2, $onlyInFirst, $onlyInSecond, $commonTables);
 
         } catch (\Exception $e) {
             $io->error('Error comparing tables: ' . $e->getMessage());
@@ -141,5 +86,72 @@ class CompareTablesCommand extends BaseCommand
         }
 
         return Command::SUCCESS;
+    }
+
+    private function displayTableComparison(SymfonyStyle $io, array $tables1, array $tables2, string $databaseName): void
+    {
+        // Create a combined table with all tables
+        $allTables = array_unique(array_merge($tables1, $tables2));
+        sort($allTables);
+
+        $tableData = [];
+        foreach ($allTables as $table) {
+            $existsInFirst = in_array($table, $tables1) ? '✓' : '✗';
+            $existsInSecond = in_array($table, $tables2) ? '✓' : '✗';
+            $tableData[] = [$table, $existsInFirst, $existsInSecond];
+        }
+
+        // Display results in table format
+        $io->section("Comparison Results for '{$databaseName}'");
+        $io->table(
+            ['Table Name', 'Exists in Connection 1', 'Exists in Connection 2'],
+            $tableData
+        );
+    }
+
+    private function displayCategorySections(SymfonyStyle $io, array $onlyInFirst, array $onlyInSecond, array $commonTables): void
+    {
+        $io->section('Tables present just at the first connection');
+        if (!empty($onlyInFirst)) {
+            $io->listing($onlyInFirst);
+        } else {
+            $io->text('No tables found');
+        }
+
+        $io->section('Tables present just at the second connection');
+        if (!empty($onlyInSecond)) {
+            $io->listing($onlyInSecond);
+        } else {
+            $io->text('No tables found');
+        }
+
+        $io->section('Tables present at both connections');
+        if (!empty($commonTables)) {
+            $io->listing($commonTables);
+        } else {
+            $io->text('No tables found');
+        }
+    }
+
+    private function displaySummary(SymfonyStyle $io, array $tables1, array $tables2, array $onlyInFirst, array $onlyInSecond, array $commonTables): void
+    {
+        // Show summary statistics
+        $allTables = array_unique(array_merge($tables1, $tables2));
+        $totalTables = count($allTables);
+        $onlyInFirstCount = count($onlyInFirst);
+        $onlyInSecondCount = count($onlyInSecond);
+        $commonCount = count($commonTables);
+
+        $io->section('Summary');
+        $io->writeln(sprintf('Total tables: %d', $totalTables));
+        $io->writeln(sprintf('Only in connection 1: %d', $onlyInFirstCount));
+        $io->writeln(sprintf('Only in connection 2: %d', $onlyInSecondCount));
+        $io->writeln(sprintf('Common to both: %d', $commonCount));
+
+        if (empty($onlyInFirst) && empty($onlyInSecond) && empty($commonTables)) {
+            $io->info('Both databases have no tables.');
+        } elseif (empty($onlyInFirst) && empty($onlyInSecond)) {
+            $io->success('Both connections have identical table sets.');
+        }
     }
 }
