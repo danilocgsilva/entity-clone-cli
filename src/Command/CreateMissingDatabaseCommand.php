@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\DatabaseWorks;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\CreateMissingDatabaseDataCollector;
 
 #[AsCommand(
     name: 'app:create-missing-database',
@@ -31,10 +32,15 @@ class CreateMissingDatabaseCommand extends BaseCommand
         $io->title('Missing Databases');
 
         try {
-            [$access1, $access2] = $this->resolveTwoConnections($input, $io) ?? [null, null];
-            if (!$access1 || !$access2) {
+            $dataCollector = new CreateMissingDatabaseDataCollector($input, $io);
+            $data = $dataCollector->collect();
+            
+            if (!$data) {
                 return Command::FAILURE;
             }
+
+            $access1 = $data['access1'];
+            $access2 = $data['access2'];
 
             $databaseWorks1 = new DatabaseWorks($access1);
             $databaseWorks2 = new DatabaseWorks($access2);
