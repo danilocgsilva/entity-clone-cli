@@ -12,7 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityCloneCli\Helpers;
-use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\CloneRecordDataCollector;
 use Exception;
 
 #[AsCommand(
@@ -64,34 +64,26 @@ class CloneRecordCommand extends BaseCommand
         $io->title('Clone Database Record');
 
         try {
-            $entityManager = Helpers::createEntityManager();
+            $dataCollector = new CloneRecordDataCollector($input, $io);
+            $data = $dataCollector->collect();
+            
+            if (!$data) {
+                return Command::FAILURE;
+            }
+
+            $sourceDatabaseName = $data['sourceDatabaseName'];
+            $targetDatabaseName = $data['targetDatabaseName'];
+            $tableName = $data['tableName'];
+            $recordId = $data['recordId'];
+            $sourceConnectionId = $data['sourceConnectionId'];
+            $targetConnectionId = $data['targetConnectionId'];
 
             $io->section('Available Database Connections');
             $this->connectionLister->listConnections($io);
             $io->newLine();
 
-            $sourceDatabaseName = $this->requireOption($input, $io, 'source-database-name', 'Enter source database name');
-            if (!$sourceDatabaseName) return Command::FAILURE;
-
-            $targetDatabaseName = $this->requireOption($input, $io, 'target-database-name', 'Enter target database name');
-            if (!$targetDatabaseName) return Command::FAILURE;
-
-            $tableName = $this->requireOption($input, $io, 'table-name', 'Enter table name to clone record from');
-            if (!$tableName) return Command::FAILURE;
-
-            $recordId = (int) $this->requireOption($input, $io, 'record-id', 'Enter ID of the record to clone');
-            if (!$recordId) return Command::FAILURE;
-
-            $sourceConnectionId = $this->getConnectionIdFromDatabaseName($sourceDatabaseName, $entityManager);
-            $targetConnectionId = $this->getConnectionIdFromDatabaseName($targetDatabaseName, $entityManager);
-            
-            if (!$sourceConnectionId || !$targetConnectionId) {
-                $io->error('Could not find connection IDs for the specified databases');
-                return Command::FAILURE;
-            }
-
-            $sourcePdo = Domain::getPdoFromDatabaseAccessId($sourceConnectionId, $entityManager);
-            $targetPdo = Domain::getPdoFromDatabaseAccessId($targetConnectionId, $entityManager);
+            $sourcePdo = Domain::getPdoFromDatabaseAccessId($sourceConnectionId, Helpers::createEntityManager());
+            $targetPdo = Domain::getPdoFromDatabaseAccessId($targetConnectionId, Helpers::createEntityManager());
 
             $sourceDatabases = Domain::listDatabases($sourcePdo, true);
             if (!in_array($sourceDatabaseName, $sourceDatabases)) {
@@ -125,26 +117,5 @@ class CloneRecordCommand extends BaseCommand
             $io->error('Error cloning record: ' . $e->getMessage());
             return Command::FAILURE;
         }
-    }
-
-    private function getConnectionIdFromDatabaseName(string $databaseName, $entityManager): ?int
-    {
-        $repository = $entityManager->getRepository(\Danilocgsilva\EntityClone\Entities\DatabaseAccess::class);
-        $databaseAccesses = $repository->findAll();
-        
-        foreach ($databaseAccesses as $dbAccess) {
-            try {
-                $pdo = Domain::createPdoFromDatabaseConnectionEntity($dbAccess);
-                $databases = Domain::listDatabases($pdo, true);
-                
-                if (in_array($databaseName, $databases)) {
-                    return $dbAccess->getId();
-                }
-            } catch (Exception $e) {
-                continue;
-            }
-        }
-        
-        return null;
     }
 }

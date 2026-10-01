@@ -13,6 +13,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\DatabaseWorks;
 use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\CompareTablesDataCollector;
 
 #[AsCommand(
     name: 'anatomy:compare-tables',
@@ -33,10 +34,15 @@ class CompareTablesCommand extends BaseCommand
         $io->title('Database Tables Comparison');
 
         try {
-            [$access1, $access2] = $this->resolveTwoConnections($input, $io) ?? [null, null];
-            if (!$access1 || !$access2) {
+            $dataCollector = new CompareTablesDataCollector($input, $io);
+            $data = $dataCollector->collect();
+            
+            if (!$data) {
                 return Command::FAILURE;
             }
+
+            $access1 = $data['access1'];
+            $access2 = $data['access2'];
 
             $commonDatabases = array_values(array_intersect(
                 (new DatabaseWorks($access1))->listDatabasesNames(),

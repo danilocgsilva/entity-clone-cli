@@ -12,6 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\CreateDatabaseDataCollector;
 use Exception;
 use PDOException;
 
@@ -44,27 +45,16 @@ class CreateDatabaseCommand extends BaseCommand
         $io->title('Create New Database');
 
         try {
-            $entityManager = Helpers::createEntityManager();
-            $repository = $entityManager->getRepository(DatabaseAccess::class);
-
-            // Get connection ID
-            $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID:');
-            if (!$connectionId) {
+            $dataCollector = new CreateDatabaseDataCollector($input, $io);
+            $data = $dataCollector->collect();
+            
+            if (!$data) {
                 return Command::FAILURE;
             }
 
-            // Validate connection exists
-            $databaseAccess = $repository->find($connectionId);
-            if (!$databaseAccess) {
-                $io->error("Database connection with ID {$connectionId} not found.");
-                return Command::FAILURE;
-            }
-
-            // Get database name
-            $databaseName = $this->requireOption($input, $io, 'database-name', 'Please enter the name of the new database to create:');
-            if (!$databaseName) {
-                return Command::FAILURE;
-            }
+            $connectionId = $data['connectionId'];
+            $databaseAccess = $data['databaseAccess'];
+            $databaseName = $data['databaseName'];
 
             // Create PDO connection using the existing connection details
             $dsn = "mysql:host={$databaseAccess->getHost()};port={$databaseAccess->getPort()};charset=utf8mb4";
