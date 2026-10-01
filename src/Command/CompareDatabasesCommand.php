@@ -11,8 +11,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\DatabaseWorks;
-use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
-use Danilocgsilva\EntityClone\EntityManagerFactory;
 use Danilocgsilva\EntityCloneCli\Command\DataCollectors\CompareDatabasesDataCollector;
 
 #[AsCommand(

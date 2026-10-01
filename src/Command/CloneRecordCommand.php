@@ -13,6 +13,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityCloneCli\Helpers;
 use Danilocgsilva\EntityCloneCli\Command\DataCollectors\CloneRecordDataCollector;
+use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 use Exception;
 
 #[AsCommand(
