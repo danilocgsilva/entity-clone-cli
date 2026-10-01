@@ -37,12 +37,6 @@ class ListTableEntryCountsCommand extends BaseCommand
                 'c',
                 InputOption::VALUE_REQUIRED,
                 'Database connection ID'
-            )
-            ->addOption(
-                'database-name',
-                'd',
-                InputOption::VALUE_REQUIRED,
-                'Database name to list tables from'
             );
     }
 
@@ -70,13 +64,53 @@ class ListTableEntryCountsCommand extends BaseCommand
                 return Command::FAILURE;
             }
 
-            $databaseName = $this->requireOption($input, $io, 'database-name', 'Please enter the database name:');
-            if (!$databaseName) {
+            $pdo = Domain::createPdoFromDatabaseConnectionEntity($databaseAccess);
+
+            // List available databases
+            $stmt = $pdo->query('SHOW DATABASES');
+            $databases = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            
+            if (empty($databases)) {
+                $io->error('No databases found in the selected connection.');
                 return Command::FAILURE;
             }
 
-            $pdo = Domain::createPdoFromDatabaseConnectionEntity($databaseAccess);
+            // Remove system databases
+            $userDatabases = array_filter($databases, function($database) {
+                return !in_array($database, ['information_schema', 'mysql', 'performance_schema', 'sys']);
+            });
 
+            if (empty($userDatabases)) {
+                $io->error('No user databases found in the selected connection.');
+                return Command::FAILURE;
+            }
+
+            // Display available databases with numbers
+            $io->section('Available Databases:');
+            foreach ($userDatabases as $index => $databaseName) {
+                $io->text(($index + 1) . '. ' . $databaseName);
+            }
+            
+            // Ask user to select database by number
+            $selectedDatabaseIndex = (int) $io->ask(
+                'Please enter the number of the database you want to list tables from',
+                null,
+                function ($value) use ($userDatabases) {
+                    $index = (int) $value - 1;
+                    if ($index < 0 || $index >= count($userDatabases)) {
+                        throw new \InvalidArgumentException('Please enter a valid database number.');
+                    }
+                    return $value;
+                }
+            );
+            
+            if (!$selectedDatabaseIndex) {
+                return Command::FAILURE;
+            }
+
+            $databaseName = $userDatabases[$selectedDatabaseIndex - 1];
+
+            // Verify database exists
             $stmt = $pdo->prepare('SHOW DATABASES LIKE ?');
             $stmt->execute([$databaseName]);
             
