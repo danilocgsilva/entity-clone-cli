@@ -12,6 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\GetCreateTableStatementDataCollector;
 
 #[AsCommand(
     name: 'app:get-create-table-statement',
@@ -33,18 +34,18 @@ class GetCreateTableStatementCommand extends BaseCommand
         $io->title('Create Table Statement');
 
         try {
-            $entityManager = Helpers::createEntityManager();
+            $dataCollector = new GetCreateTableStatementDataCollector($input, $io);
+            $data = $dataCollector->collect();
+            
+            if (!$data) {
+                return Command::FAILURE;
+            }
 
-            $connectionId = $this->askConnectionId($input, $io, $entityManager);
-            if (!$connectionId) return Command::FAILURE;
+            $connectionId = $data['connectionId'];
+            $databaseName = $data['databaseName'];
+            $tableName = $data['tableName'];
 
-            $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
-
-            $databaseName = $this->askDatabaseName($input, $io, $pdo);
-            if (!$databaseName) return Command::FAILURE;
-
-            $tableName = $this->askTableName($input, $io, $pdo, $databaseName);
-            if (!$tableName) return Command::FAILURE;
+            $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $this->entityManager);
             $pdo->exec("USE `{$databaseName}`");
 
             $statement = Domain::getCreateTableStatement($pdo, $tableName);
