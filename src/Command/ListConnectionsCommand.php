@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\ListConnectionsDataCollector;
 
 #[AsCommand(
     name: 'app:list-connections',
@@ -31,6 +32,9 @@ class ListConnectionsCommand extends BaseCommand
         $io->title('Database Connections List');
 
         try {
+            $dataCollector = new ListConnectionsDataCollector($input, $io);
+            $data = $dataCollector->collect();
+            
             $this->connectionLister->listConnections($io);
             
         } catch (\Exception $e) {
