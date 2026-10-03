@@ -11,9 +11,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
-use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
-use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
-use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\ListDatabaseSizesDataCollector;
+use Exception;
 
 #[AsCommand(
     name: 'anatomy:list-database-sizes',
@@ -21,14 +20,6 @@ use Danilocgsilva\EntityCloneCli\Helpers;
 )]
 class ListDatabaseSizesCommand extends BaseCommand
 {
-    private DatabaseConnectionLister $connectionLister;
-
-    public function __construct(DatabaseConnectionLister $connectionLister)
-    {
-        $this->connectionLister = $connectionLister;
-        parent::__construct();
-    }
-
     protected function configure(): void
     {
         $this
@@ -46,29 +37,19 @@ class ListDatabaseSizesCommand extends BaseCommand
         $io->title('Database Sizes');
 
         try {
-            // First list all connections for reference
-            $this->connectionLister->listConnections($io);
-
-            $entityManager = Helpers::createEntityManager();
+            $dataCollector = new ListDatabaseSizesDataCollector($input, $io);
+            $data = $dataCollector->collect();
             
-            $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 
-                'Please enter the database connection ID to get sizes:');
-                
-            if (!$connectionId) {
+            if (!$data) {
                 return Command::FAILURE;
             }
 
-            $databaseAccess = $entityManager->getRepository(DatabaseAccess::class)->find($connectionId);
-            
-            if (!$databaseAccess) {
-                $io->error("Database connection with ID {$connectionId} not found.");
-                return Command::FAILURE;
-            }
+            $connectionId = $data['connectionId'];
+            $access = $data['access'];
 
-            // Get PDO from the selected connection
-            $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
+            $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $this->entityManager);
 
-            $io->section("Databases for '{$databaseAccess->getName()}' (ID: {$connectionId})");
+            $io->section("Databases for '{$access->getName()}' (ID: {$connectionId})");
 
             $sizeCount = 0;
             
@@ -98,11 +79,11 @@ class ListDatabaseSizesCommand extends BaseCommand
                 $io->section('Summary');
                 $io->text([
                     "Total databases: {$sizeCount}",
-                    "Connection: '{$databaseAccess->getName()}' (ID: {$connectionId})"
+                    "Connection: '{$access->getName()}' (ID: {$connectionId})"
                 ]);
             }
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $io->error("Error listing database sizes: " . $e->getMessage());
             return Command::FAILURE;
         }
