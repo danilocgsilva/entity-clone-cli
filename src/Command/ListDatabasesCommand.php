@@ -11,9 +11,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
-use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
-use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
-use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\ListDatabasesDataCollector;
+use Exception;
 
 #[AsCommand(
     name: 'app:list-databases',
@@ -21,14 +20,6 @@ use Danilocgsilva\EntityCloneCli\Helpers;
 )]
 class ListDatabasesCommand extends BaseCommand
 {
-    private DatabaseConnectionLister $connectionLister;
-
-    public function __construct(DatabaseConnectionLister $connectionLister)
-    {
-        $this->connectionLister = $connectionLister;
-        parent::__construct();
-    }
-
     protected function configure(): void
     {
         $this
@@ -46,14 +37,17 @@ class ListDatabasesCommand extends BaseCommand
         $io->title('Database Connection Databases List');
 
         try {
-            $this->connectionLister->listConnections($io);
+            $dataCollector = new ListDatabasesDataCollector($input, $io);
+            $data = $dataCollector->collect();
             
-            $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID');
-            if (!$connectionId) return Command::FAILURE;
+            if (!$data) {
+                return Command::FAILURE;
+            }
 
-            $entityManager = Helpers::createEntityManager();
+            $connectionId = $data['connectionId'];
+            $access = $data['access'];
 
-            $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
+            $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $this->entityManager);
 
             $databases = Domain::listDatabases($pdo, true);
 
@@ -66,7 +60,7 @@ class ListDatabasesCommand extends BaseCommand
 
             $io->listing($databases);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $io->error('Error retrieving databases: ' . $e->getMessage());
             return Command::FAILURE;
         }
