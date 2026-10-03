@@ -14,6 +14,7 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\DeleteConnectionDataCollector;
 
 #[AsCommand(
     name: 'app:delete-connection',
@@ -46,19 +47,15 @@ class DeleteConnectionCommand extends BaseCommand
         $io->title('Delete Database Connection');
 
         try {
-            $this->connectionLister->listConnections($io);
+            $dataCollector = new DeleteConnectionDataCollector($input, $io, $this->connectionLister);
+            $data = $dataCollector->collect();
             
-            $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID to delete:');
-            if (!$connectionId) return Command::FAILURE;
-
-            $entityManager = Helpers::createEntityManager();
-
-            $databaseAccess = $entityManager->getRepository(DatabaseAccess::class)->find($connectionId);
-            
-            if (!$databaseAccess) {
-                $io->error("Database connection with ID {$connectionId} not found.");
+            if (!$data) {
                 return Command::FAILURE;
             }
+
+            $connectionId = $data['connectionId'];
+            $databaseAccess = $data['databaseAccess'];
 
             $question = new ConfirmationQuestion(
                 "Are you sure you want to delete the connection '{$databaseAccess->getName()}' (ID: {$connectionId})? (yes/no) ",
@@ -73,8 +70,8 @@ class DeleteConnectionCommand extends BaseCommand
                 return Command::SUCCESS;
             }
 
-            $entityManager->remove($databaseAccess);
-            $entityManager->flush();
+            $this->entityManager->remove($databaseAccess);
+            $this->entityManager->flush();
 
             $io->success("Database connection '{$databaseAccess->getName()}' (ID: {$connectionId}) deleted successfully.");
             return Command::SUCCESS;
