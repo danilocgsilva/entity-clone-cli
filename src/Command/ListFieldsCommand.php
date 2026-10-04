@@ -12,6 +12,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\EntityManagerFactory;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\ListFieldsDataCollector;
+use Exception;
 
 #[AsCommand(
     name: 'app:list-fields',
@@ -42,30 +44,24 @@ class ListFieldsCommand extends Command
         $io->title('Database Table Fields List');
 
         try {
-            // Get connection ID and table name from input
-            $connectionId = (int) $input->getOption('connection-id');
-            $tableName = $input->getOption('table-name');
-
-            if (!$connectionId) {
-                $io->error('Connection ID is required. Use --connection-id or -c option.');
+            $dataCollector = new ListFieldsDataCollector($input, $io);
+            $data = $dataCollector->collect();
+            
+            if (!$data) {
                 return Command::FAILURE;
             }
 
-            if (!$tableName) {
-                $io->error('Table name is required. Use --table-name or -t option.');
-                return Command::FAILURE;
-            }
+            $connectionId = $data['connectionId'];
+            $tableName = $data['tableName'];
+            $access = $data['access'];
 
-            // Create EntityManager
             $entityManager = EntityManagerFactory::create(
                 projectRoot: __DIR__ . '/..',
                 entityPaths: [__DIR__ . '/../src/Entities'],
             );
 
-            // Get PDO connection from database access ID
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
 
-            // Get fields from table
             $fields = Domain::getFieldsFromTable($pdo, $tableName);
 
             if (empty($fields)) {
@@ -73,7 +69,6 @@ class ListFieldsCommand extends Command
                 return Command::SUCCESS;
             }
 
-            // Prepare table data
             $tableRows = [];
             foreach ($fields as $field) {
                 $tableRows[] = [
@@ -91,7 +86,7 @@ class ListFieldsCommand extends Command
                 $tableRows
             );
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $io->error('Error retrieving table fields: ' . $e->getMessage());
             return Command::FAILURE;
         }
