@@ -13,6 +13,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityCloneCli\Command\DataCollectors\ListDatabasesDataCollector;
 use Exception;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
     name: 'app:list-databases',
@@ -47,7 +48,7 @@ class ListDatabasesCommand extends BaseCommand
             $connectionId = $data['connectionId'];
             $access = $data['access'];
 
-            $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $this->entityManager);
+            $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, Helpers::createEntityManager());
 
             $databases = Domain::listDatabases($pdo, true);
 
