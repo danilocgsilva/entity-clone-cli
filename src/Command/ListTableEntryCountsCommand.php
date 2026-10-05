@@ -13,6 +13,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\ListTableEntryCountsDataCollector;
 use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 
 #[AsCommand(
@@ -46,24 +47,20 @@ class ListTableEntryCountsCommand extends BaseCommand
         $io->title('Database Table Entry Counts List');
 
         try {
-            $entityManager = Helpers::createEntityManager();
-            $repository = $entityManager->getRepository(DatabaseAccess::class);
+            $dataCollector = new ListTableEntryCountsDataCollector($input, $io);
+            $data = $dataCollector->collect();
+            
+            if (!$data) {
+                return Command::FAILURE;
+            }
+
+            $connectionId = $data['connectionId'];
+            $databaseAccess = $data['databaseAccess'];
 
             // First list available connections
             $io->section('Available Database Connections:');
             $this->connectionLister->listConnections($io);
             
-            $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID:');
-            if (!$connectionId) {
-                return Command::FAILURE;
-            }
-
-            $databaseAccess = $repository->find($connectionId);
-            if (!$databaseAccess) {
-                $io->error("Database connection with ID {$connectionId} not found.");
-                return Command::FAILURE;
-            }
-
             $pdo = Domain::createPdoFromDatabaseConnectionEntity($databaseAccess);
 
             // List available databases

@@ -40,7 +40,7 @@ $application->addCommands([
     new ListConnectionsCommand($databaseConnectionLister),
     new ListFieldsCommand(),
     new ListTablesCommand(),
-    new ListDatabasesCommand($databaseConnectionLister),
+    new ListDatabasesCommand(),
     new RegisterConnectionCommand(),
     new TestConnectionCommand($databaseConnectionLister),
     new UpdateConnectionCommand(),
@@ -52,7 +52,7 @@ $application->addCommands([
     new SyncDatabasesCommand($databaseConnectionLister),
     new TestAllConnectionsCommand($databaseConnectionLister),
     new CreateDatabaseCommand(),
-    new ListDatabaseSizesCommand($databaseConnectionLister),
+    new ListDatabaseSizesCommand(),
     new ListTableEntryCountsCommand($databaseConnectionLister),
     new ListTableSizesCommand($databaseConnectionLister)
 ]);
