@@ -11,7 +11,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
-use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\ListTablesDataCollector;
 
 #[AsCommand(
     name: 'app:list-tables',
@@ -42,14 +42,18 @@ class ListTablesCommand extends BaseCommand
         $io->title('Database Tables List');
 
         try {
-            $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID');
-            if (!$connectionId) return Command::FAILURE;
+            $dataCollector = new ListTablesDataCollector($input, $io);
+            $data = $dataCollector->collect();
+            
+            if (!$data) {
+                return Command::FAILURE;
+            }
 
-            $databaseName = $this->requireOption($input, $io, 'database-name', 'Please enter the database name');
-            if (!$databaseName) return Command::FAILURE;
+            $connectionId = $data['connectionId'];
+            $databaseName = $data['databaseName'];
+            $access = $data['access'];
 
             $entityManager = Helpers::createEntityManager();
-
             $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
 
             $tables = Domain::listTables($pdo, $databaseName);
