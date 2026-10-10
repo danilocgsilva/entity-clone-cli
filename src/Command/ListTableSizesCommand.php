@@ -11,11 +11,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
-use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
-use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
-use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\ListTableSizesDataCollector;
 use Exception;
-use PDO;
 
 #[AsCommand(
     name: 'anatomy:list-table-sizes',
@@ -23,14 +20,6 @@ use PDO;
 )]
 class ListTableSizesCommand extends BaseCommand
 {
-    private DatabaseConnectionLister $connectionLister;
-
-    public function __construct(DatabaseConnectionLister $connectionLister)
-    {
-        $this->connectionLister = $connectionLister;
-        parent::__construct();
-    }
-
     protected function configure(): void
     {
         $this
@@ -48,23 +37,17 @@ class ListTableSizesCommand extends BaseCommand
         $io->title('Database Table Sizes List');
 
         try {
-            $this->connectionLister->listConnections($io);
-
-            $entityManager = Helpers::createEntityManager();
-            $repository = $entityManager->getRepository(DatabaseAccess::class);
-
-            $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID:');
-            if (!$connectionId) {
+            $dataCollector = new ListTableSizesDataCollector($input, $io);
+            $data = $dataCollector->collect();
+            
+            if (!$data) {
                 return Command::FAILURE;
             }
 
-            $databaseAccess = $repository->find($connectionId);
-            if (!$databaseAccess) {
-                $io->error("Database connection with ID {$connectionId} not found.");
-                return Command::FAILURE;
-            }
+            $connectionId = $data['connectionId'];
+            $access = $data['access'];
 
-            $pdo = Domain::createPdoFromDatabaseConnectionEntity($databaseAccess);
+            $pdo = Domain::createPdoFromDatabaseConnectionEntity($access);
             
             $databases = $this->getDatabasesList($pdo);
             if (empty($databases)) {
