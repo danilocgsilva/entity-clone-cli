@@ -11,23 +11,14 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
-use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
-use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\SyncDatabasesDataCollector;
 
 #[AsCommand(
     name: 'app:sync-databases',
     description: 'Sync databases from one connection to another, creating missing databases.'
 )]
-class SyncDatabasesCommand extends BaseCommand
+class SyncDatabasesCommand extends Command
 {
-    private DatabaseConnectionLister $connectionLister;
-
-    public function __construct(DatabaseConnectionLister $connectionLister)
-    {
-        $this->connectionLister = $connectionLister;
-        parent::__construct();
-    }
-
     protected function configure(): void
     {
         $this
@@ -41,24 +32,23 @@ class SyncDatabasesCommand extends BaseCommand
         $io->title('Database Synchronization');
 
         try {
-            // First list all connections
-            $this->connectionLister->listConnections($io);
+            $dataCollector = new SyncDatabasesDataCollector($input, $io);
+            $data = $dataCollector->collect();
             
-            $sourceConnectionId = (int) $this->requireOption($input, $io, 'source-connection-id', 'Please enter the source database connection ID');
-            if (!$sourceConnectionId) return Command::FAILURE;
+            if (!$data) {
+                return Command::FAILURE;
+            }
 
-            $targetConnectionId = (int) $this->requireOption($input, $io, 'target-connection-id', 'Please enter the target database connection ID');
-            if (!$targetConnectionId) return Command::FAILURE;
+            $sourceConnectionId = $data['sourceConnectionId'];
+            $targetConnectionId = $data['targetConnectionId'];
 
             if ($sourceConnectionId === $targetConnectionId) {
                 $io->error('Source and target connection IDs must be different.');
                 return Command::FAILURE;
             }
 
-            $entityManager = Helpers::createEntityManager();
-
             $results = [];
-            foreach (Domain::syncDatabasesBetweenConnections($sourceConnectionId, $targetConnectionId, $entityManager) as $result) {
+            foreach (Domain::syncDatabasesBetweenConnections($sourceConnectionId, $targetConnectionId, $data['entityManager']) as $result) {
                 $results[] = $result;
             }
 

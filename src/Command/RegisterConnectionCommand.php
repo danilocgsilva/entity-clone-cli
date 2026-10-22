@@ -9,6 +9,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Question\Question;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\Helpers;
@@ -22,81 +23,83 @@ class RegisterConnectionCommand extends BaseCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-
-        /** @var \Symfony\Component\Console\Helper\QuestionHelper */
-        $helper = $this->getHelper('question');
-
-        $connectionNameQuestion = new Question('Enter the connection name to make it more identifiable: ');
-        $connectionName = $helper->ask($input, $output, $connectionNameQuestion);
-        if ($connectionName === null || trim($connectionName) === '') {
-            $io->error('Connection name cannot be empty. Exiting.');
-            return Command::FAILURE;
-        }
-        $connectionName = trim($connectionName);
-
-        $hostQuestion = new Question('Enter the host: ');
-        $host = $helper->ask($input, $output, $hostQuestion);
-        if ($host === null || trim($host) === '') {
-            $io->error('Host cannot be empty. Exiting.');
-            return Command::FAILURE;
-        }
-        $host = trim($host);
-
-        $userQuestion = new Question('Enter the user: ');
-        $user = $helper->ask($input, $output, $userQuestion);
-        if ($user === null || trim($user) === '') {
-            $io->error('User cannot be empty. Exiting.');
-            return Command::FAILURE;
-        }
-        $user = trim($user);
-
-        $dbQuestion = new Question('Enter the database name (optional): ');
-        $databaseName = $helper->ask($input, $output, $dbQuestion);
-        if ($databaseName !== null) {
-            $databaseName = trim($databaseName);
-        }
-
-        $passwordQuestion = new Question('Enter the password: ');
-        $passwordQuestion->setHidden(true);
-        $passwordQuestion->setHiddenFallback(false); // Fail if terminal doesn't support hiding
-        $password = $helper->ask($input, $output, $passwordQuestion);
-        if ($password === null || trim($password) === '') {
-            $io->error('Password cannot be empty. Exiting.');
-            return Command::FAILURE;
-        }
-        $password = trim($password);
-
-        $portQuestion = new Question('Enter the port [default: 3306]: ', '3306');
-        $port = trim($helper->ask($input, $output, $portQuestion));
-        if ($port === '') {
-            $port = '3306';
-        }
-
-        $output->writeln('<info>Connection details collected successfully!</info>');
-        $output->writeln([
-            'Host: <comment>' . $host . '</comment>',
-            'User: <comment>' . $user . '</comment>',
-            'Database: <comment>' . ($databaseName ?: 'Not provided') . '</comment>',
-            'Port: <comment>' . $port . '</comment>',
-        ]);
-
-        $entityManager = Helpers::createEntityManager();
-
-        $databaseAccess = new DatabaseAccess()
-            ->setName($connectionName)
-            ->setHost($host)
-            ->setUser($user)
-            ->setPassword($password)
-            ->setDatabaseName($databaseName) // Can be null
-            ->setPort((int)$port);
+        $io->title('Register Database Connection');
 
         try {
+            // Use the helper from the command context directly
+            /** @var QuestionHelper */
+            $helper = $this->getHelper('question');
+
+            $connectionNameQuestion = new Question('Enter the connection name to make it more identifiable: ');
+            $connectionName = $helper->ask($input, $output, $connectionNameQuestion);
+            if ($connectionName === null || trim($connectionName) === '') {
+                $io->error('Connection name cannot be empty. Exiting.');
+                return Command::FAILURE;
+            }
+            $connectionName = trim($connectionName);
+
+            $hostQuestion = new Question('Enter the host: ');
+            $host = $helper->ask($input, $output, $hostQuestion);
+            if ($host === null || trim($host) === '') {
+                $io->error('Host cannot be empty. Exiting.');
+                return Command::FAILURE;
+            }
+            $host = trim($host);
+
+            $userQuestion = new Question('Enter the user: ');
+            $user = $helper->ask($input, $output, $userQuestion);
+            if ($user === null || trim($user) === '') {
+                $io->error('User cannot be empty. Exiting.');
+                return Command::FAILURE;
+            }
+            $user = trim($user);
+
+            $dbQuestion = new Question('Enter the database name (optional): ');
+            $databaseName = $helper->ask($input, $output, $dbQuestion);
+            if ($databaseName !== null) {
+                $databaseName = trim($databaseName);
+            }
+
+            $passwordQuestion = new Question('Enter the password: ');
+            $passwordQuestion->setHidden(true);
+            $passwordQuestion->setHiddenFallback(false); // Fail if terminal doesn't support hiding
+            $password = $helper->ask($input, $output, $passwordQuestion);
+            if ($password === null || trim($password) === '') {
+                $io->error('Password cannot be empty. Exiting.');
+                return Command::FAILURE;
+            }
+            $password = trim($password);
+
+            $portQuestion = new Question('Enter the port [default: 3306]: ', '3306');
+            $port = trim($helper->ask($input, $output, $portQuestion));
+            if ($port === '') {
+                $port = '3306';
+            }
+
+            $io->writeln('<info>Connection details collected successfully!</info>');
+            $io->writeln([
+                'Host: <comment>' . $host . '</comment>',
+                'User: <comment>' . $user . '</comment>',
+                'Database: <comment>' . ($databaseName ?: 'Not provided') . '</comment>',
+                'Port: <comment>' . $port . '</comment>',
+            ]);
+
+            $entityManager = Helpers::createEntityManager();
+
+            $databaseAccess = new DatabaseAccess()
+                ->setName($connectionName)
+                ->setHost($host)
+                ->setUser($user)
+                ->setPassword($password)
+                ->setDatabaseName($databaseName) // Can be null
+                ->setPort((int)$port);
+
             $entityManager->persist($databaseAccess);
             $entityManager->flush();
 
-            $output->writeln('<info>Database connection registered successfully with ID: ' . $databaseAccess->getId() . '</info>');
+            $io->success('Database connection registered successfully with ID: ' . $databaseAccess->getId());
         } catch (\Exception $e) {
-            $output->writeln('<error>Error saving connection: ' . $e->getMessage() . '</error>');
+            $io->error('Error registering connection: ' . $e->getMessage());
             return Command::FAILURE;
         }
 
