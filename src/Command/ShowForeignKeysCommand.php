@@ -11,7 +11,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
-use Danilocgsilva\EntityCloneCli\Helpers;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\ShowForeignKeysDataCollector;
 
 #[AsCommand(
     name: 'app:show-foreign-keys',
@@ -32,16 +32,19 @@ class ShowForeignKeysCommand extends BaseCommand
         $io = new SymfonyStyle($input, $output);
         $io->title('Foreign Keys Information');
 
-        $entityManager = Helpers::createEntityManager();
-
-        $options = $this->initializeOptions($input, $io);
-        if ($options === null) {
-            return Command::FAILURE;
-        }
-
-        [$connectionId, $databaseName, $tableName] = $options;
-
         try {
+            $dataCollector = new ShowForeignKeysDataCollector($input, $io);
+            $data = $dataCollector->collect();
+            
+            if (!$data) {
+                return Command::FAILURE;
+            }
+
+            $connectionId = $data['connectionId'];
+            $databaseName = $data['databaseName'];
+            $tableName = $data['tableName'];
+
+            $entityManager = Helpers::createEntityManager();
             $pdo = Domain::getPdoFromDatabaseAccessId((int) $connectionId, $entityManager);
 
             $foreignKeys = Domain::getTableForeignKeys($pdo, $databaseName, $tableName);
@@ -73,50 +76,5 @@ class ShowForeignKeysCommand extends BaseCommand
         }
 
         return Command::SUCCESS;
-    }
-
-    private function initializeOptions(InputInterface $input, SymfonyStyle $io): ?array
-    {
-        $connectionId = $this->requireOption($input, $io, 'connection-id', 'Enter connection ID:');
-        if (!$connectionId) {
-            return null;
-        }
-
-        $entityManager = Helpers::createEntityManager();
-        $pdo = Domain::getPdoFromDatabaseAccessId((int) $connectionId, $entityManager);
-        
-        $stmt = $pdo->query('SHOW DATABASES');
-        $databases = $stmt->fetchAll(\PDO::FETCH_COLUMN);
-        
-        if (empty($databases)) {
-            $io->error('No databases found for this connection.');
-            return null;
-        }
-        
-        sort($databases);
-        
-        $databaseName = $this->requireOptionByNumber(
-            $input, 
-            $io, 
-            'database-name', 
-            'Pick a database number:', 
-            $databases
-        );
-
-        $databaseName = $this->requireOption($input, $io, 'database-name', 'Enter database name:');
-        if (!$databaseName) {
-            return null;
-        }
-
-        $tableName = $this->requireOption($input, $io, 'table-name', 'Enter table name:');
-        if (!$tableName) {
-            return null;
-        }
-
-        return [
-            (int) $connectionId,
-            $databaseName,
-            $tableName
-        ];
     }
 }
