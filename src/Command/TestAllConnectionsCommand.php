@@ -12,6 +12,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\TestAllConnectionsDataCollector;
 use Danilocgsilva\EntityCloneCli\Helpers;
 
 #[AsCommand(
@@ -34,17 +35,22 @@ class TestAllConnectionsCommand extends BaseCommand
         $io->title('Testing All Database Connections');
 
         try {
-            $this->connectionLister->listConnections($io);
+            $dataCollector = new TestAllConnectionsDataCollector($input, $io);
+            $data = $dataCollector->collect();
             
-            $entityManager = Helpers::createEntityManager();
+            if ($data === null) {
+                return Command::FAILURE;
+            }
             
-            $databaseAccesses = $entityManager->getRepository(DatabaseAccess::class)->findAll();
-            
-            if (empty($databaseAccesses)) {
-                $io->warning('No database connections found.');
+            if (empty($data)) {
+                // No connections found, already handled by data collector
                 return Command::SUCCESS;
             }
-
+            
+            $databaseAccesses = $data['databaseAccesses'];
+            
+            $this->connectionLister->listConnections($io);
+            
             $successfulConnections = 0;
             $failedConnections = 0;
 
@@ -53,7 +59,7 @@ class TestAllConnectionsCommand extends BaseCommand
                 $connectionName = $databaseAccess->getName() ?? "Connection #{$connectionId}";
                 
                 try {
-                    $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $entityManager);
+                    $pdo = Domain::getPdoFromDatabaseAccessId($connectionId, $this->entityManager);
                     $connectionTestResult = Domain::testPdoConnection($pdo);
 
                     if ($connectionTestResult) {
