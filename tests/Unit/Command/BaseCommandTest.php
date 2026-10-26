@@ -145,20 +145,32 @@ class BaseCommandTest extends TestCase
         $input = $this->createMock(InputInterface::class);
         $io = $this->createMock(SymfonyStyle::class);
         
+        // Replaced withConsecutive with callback pattern (Strategy B from migration guide)
+        $optionCall = 0;
         $input->expects($this->exactly(2))
             ->method('getOption')
-            ->withConsecutive(['connection-id-1'], ['connection-id-2'])
-            ->willReturnOnConsecutiveCalls('1', '2');
+            ->willReturnCallback(function (string $option) use (&$optionCall): string {
+                $options = ['connection-id-1' => '1', 'connection-id-2' => '2'];
+                $this->assertArrayHasKey($option, $options, "Expected option " . ($optionCall + 1));
+                return $options[$option];
+            });
             
         $entityManager->expects($this->once())
             ->method('getRepository')
             ->with(DatabaseAccess::class)
             ->willReturn($repository);
             
+        // Replaced withConsecutive with callback pattern (Section 5 from migration guide)
+        $findCall = 0;
         $repository->expects($this->exactly(2))
             ->method('find')
-            ->withConsecutive([1], [2])
-            ->willReturnOnConsecutiveCalls($databaseAccess1, $databaseAccess2);
+            ->willReturnCallback(function (int $id) use (&$findCall, $databaseAccess1, $databaseAccess2) {
+                $expectedId = $findCall === 0 ? 1 : 2;
+                $this->assertSame($expectedId, $id);
+                $return = $findCall === 0 ? $databaseAccess1 : $databaseAccess2;
+                $findCall++;
+                return $return;
+            });
             
         $command = $this->getCommandInstance();
         
