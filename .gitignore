@@ -1,3 +1,5 @@
 vendor/**/*
 .aider*
 .vscode
+.phpunit.result.cache
+phpunit.xml

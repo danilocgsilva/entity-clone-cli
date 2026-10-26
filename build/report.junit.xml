@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="/home/phpe/entity_clone_app/entity-clone-cli/phpunit.xml" tests="11" assertions="12" errors="5" failures="2" skipped="0" time="0.042541">
+    <testsuite name="Unit Tests" tests="10" assertions="11" errors="5" failures="2" skipped="0" time="0.042404">
+      <testsuite name="Tests\Unit\DatabaseConnectionListerTest" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/DatabaseConnectionListerTest.php" tests="2" assertions="6" errors="0" failures="0" skipped="0" time="0.016187">
+        <testcase name="testListConnectionsWithData" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/DatabaseConnectionListerTest.php" line="39" class="Tests\Unit\DatabaseConnectionListerTest" classname="Tests.Unit.DatabaseConnectionListerTest" assertions="3" time="0.015957"/>
+        <testcase name="testListConnectionsEmpty" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/DatabaseConnectionListerTest.php" line="16" class="Tests\Unit\DatabaseConnectionListerTest" classname="Tests.Unit.DatabaseConnectionListerTest" assertions="3" time="0.000230"/>
+      </testsuite>
+      <testsuite name="Tests\Unit\Command\BaseCommandTest" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" tests="5" assertions="0" errors="5" failures="0" skipped="0" time="0.005516">
+        <testcase name="testRequireOptionWithProvidedValue" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="18" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="0" time="0.004662">
+          <error type="Error">Tests\Unit\Command\BaseCommandTest::testRequireOptionWithProvidedValue
+Error: Call to protected method Danilocgsilva\EntityCloneCli\Command\BaseCommand::requireOption() from scope Tests\Unit\Command\BaseCommandTest
+
+/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php:35</error>
+        </testcase>
+        <testcase name="testRequireOptionByNumberWithValidSelection" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="39" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="0" time="0.000270">
+          <error type="Error">Tests\Unit\Command\BaseCommandTest::testRequireOptionByNumberWithValidSelection
+Error: Call to protected method Danilocgsilva\EntityCloneCli\Command\BaseCommand::requireOptionByNumber() from scope Tests\Unit\Command\BaseCommandTest
+
+/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php:58</error>
+        </testcase>
+        <testcase name="testRequireOptionByNumberWithInvalidSelection" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="62" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="0" time="0.000147">
+          <error type="Error">Tests\Unit\Command\BaseCommandTest::testRequireOptionByNumberWithInvalidSelection
+Error: Call to protected method Danilocgsilva\EntityCloneCli\Command\BaseCommand::requireOptionByNumber() from scope Tests\Unit\Command\BaseCommandTest
+
+/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php:81</error>
+        </testcase>
+        <testcase name="testAskConnectionIdWithProvidedValue" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="85" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="0" time="0.000228">
+          <error type="Error">Tests\Unit\Command\BaseCommandTest::testAskConnectionIdWithProvidedValue
+Error: Call to protected method Danilocgsilva\EntityCloneCli\Command\BaseCommand::askConnectionId() from scope Tests\Unit\Command\BaseCommandTest
+
+/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php:119</error>
+        </testcase>
+        <testcase name="testResolveTwoConnectionsSuccess" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="123" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="0" time="0.000208">
+          <error type="Error">Tests\Unit\Command\BaseCommandTest::testResolveTwoConnectionsSuccess
+Error: Call to undefined method PHPUnit\Framework\MockObject\Builder\InvocationMocker::withConsecutive()
+
+/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php:141</error>
+        </testcase>
+      </testsuite>
+      <testsuite name="Tests\Unit\Command\RegisterConnectionCommandTest" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php" tests="2" assertions="4" errors="0" failures="2" skipped="0" time="0.005849">
+        <testcase name="testExecuteSuccess" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php" line="19" class="Tests\Unit\Command\RegisterConnectionCommandTest" classname="Tests.Unit.Command.RegisterConnectionCommandTest" assertions="2" time="0.005629">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">Tests\Unit\Command\RegisterConnectionCommandTest::testExecuteSuccess
+Expectation failed for method name is "getRepository" when invoked 1 time.
+Method was expected to be called 1 time, actually called 0 times.</failure>
+        </testcase>
+        <testcase name="testExecuteWithEmptyName" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php" line="70" class="Tests\Unit\Command\RegisterConnectionCommandTest" classname="Tests.Unit.Command.RegisterConnectionCommandTest" assertions="2" time="0.000220">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">Tests\Unit\Command\RegisterConnectionCommandTest::testExecuteWithEmptyName
+Expectation failed for method name is "getOption" when invoked 1 time.
+Method was expected to be called 1 time, actually called 0 times.</failure>
+        </testcase>
+      </testsuite>
+      <testsuite name="Tests\Unit\HelpersTest" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/HelpersTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.014852">
+        <testcase name="testCreateEntityManager" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/HelpersTest.php" line="14" class="Tests\Unit\HelpersTest" classname="Tests.Unit.HelpersTest" assertions="1" time="0.014852"/>
+      </testsuite>
+    </testsuite>
+    <testsuite name="Integration Tests" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000137">
+      <testsuite name="Tests\Integration\DatabaseConnectionListerIntegrationTest" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Integration/DatabaseConnectionListerIntegrationTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000137">
+        <testcase name="testListConnectionsIntegration" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Integration/DatabaseConnectionListerIntegrationTest.php" line="15" class="Tests\Integration\DatabaseConnectionListerIntegrationTest" classname="Tests.Integration.DatabaseConnectionListerIntegrationTest" assertions="1" time="0.000137"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>
