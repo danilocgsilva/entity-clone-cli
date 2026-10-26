@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Command;
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -12,9 +13,28 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\Command\BaseCommand;
+use ReflectionClass;
 
 class BaseCommandTest extends TestCase
 {
+    protected function getCommandInstance(): BaseCommand
+    {
+        return new class extends BaseCommand {
+            protected function execute(InputInterface $input, OutputInterface $output): int
+            {
+                return 0;
+            }
+        };
+    }
+
+    protected function callProtectedMethod(BaseCommand $command, string $method, array $arguments): mixed
+    {
+        $reflection = new ReflectionClass($command);
+        $methodReflection = $reflection->getMethod($method);
+        $methodReflection->setAccessible(true);
+        return $methodReflection->invokeArgs($command, $arguments);
+    }
+
     public function testRequireOptionWithProvidedValue(): void
     {
         $input = $this->createMock(InputInterface::class);
@@ -24,18 +44,13 @@ class BaseCommandTest extends TestCase
             ->method('getOption')
             ->with('test-option')
             ->willReturn('provided-value');
-            
-        $command = new class extends BaseCommand {
-            protected function execute(InputInterface $input, OutputInterface $output): int
-            {
-                return 0;
-            }
-        };
         
-        $result = $command->requireOption($input, $io, 'test-option', 'Test question');
+        $command = $this->getCommandInstance();
+        
+        $result = $this->callProtectedMethod($command, 'requireOption', [$input, $io, 'test-option', 'Test question']);
         $this->assertEquals('provided-value', $result);
     }
-    
+
     public function testRequireOptionByNumberWithValidSelection(): void
     {
         $input = $this->createMock(InputInterface::class);
@@ -45,20 +60,23 @@ class BaseCommandTest extends TestCase
             ->method('getOption')
             ->with('test-option')
             ->willReturn('option2');
-            
-        $options = ['option1', 'option2', 'option3'];
         
-        $command = new class extends BaseCommand {
-            protected function execute(InputInterface $input, OutputInterface $output): int
-            {
-                return 0;
-            }
-        };
+        $io->expects($this->never())
+            ->method('ask');
         
-        $result = $command->requireOptionByNumber($input, $io, 'test-option', 'Pick an option:', $options);
+        $command = $this->getCommandInstance();
+        
+        $result = $this->callProtectedMethod($command, 'requireOptionByNumber', [
+            $input, 
+            $io, 
+            'test-option', 
+            'Pick an option:', 
+            ['option1', 'option2', 'option3']
+        ]);
+        
         $this->assertEquals('option2', $result);
     }
-    
+
     public function testRequireOptionByNumberWithInvalidSelection(): void
     {
         $input = $this->createMock(InputInterface::class);
@@ -68,20 +86,23 @@ class BaseCommandTest extends TestCase
             ->method('getOption')
             ->with('test-option')
             ->willReturn('invalid-option');
-            
-        $options = ['option1', 'option2'];
         
-        $command = new class extends BaseCommand {
-            protected function execute(InputInterface $input, OutputInterface $output): int
-            {
-                return 0;
-            }
-        };
+        $io->expects($this->never())
+            ->method('ask');
         
-        $result = $command->requireOptionByNumber($input, $io, 'test-option', 'Pick an option:', $options);
+        $command = $this->getCommandInstance();
+        
+        $result = $this->callProtectedMethod($command, 'requireOptionByNumber', [
+            $input, 
+            $io, 
+            'test-option', 
+            'Pick an option:', 
+            ['option1', 'option2']
+        ]);
+        
         $this->assertNull($result);
     }
-    
+
     public function testAskConnectionIdWithProvidedValue(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
@@ -99,27 +120,15 @@ class BaseCommandTest extends TestCase
             ->with('connection-id')
             ->willReturn('1');
             
-        $entityManager->expects($this->once())
-            ->method('getRepository')
-            ->with(DatabaseAccess::class)
-            ->willReturn($repository);
+        $entityManager->expects($this->never())
+            ->method('getRepository');
             
-        $repository->expects($this->once())
-            ->method('find')
-            ->with(1)
-            ->willReturn($databaseAccess);
-            
-        $command = new class extends BaseCommand {
-            protected function execute(InputInterface $input, OutputInterface $output): int
-            {
-                return 0;
-            }
-        };
+        $command = $this->getCommandInstance();
         
-        $result = $command->askConnectionId($input, $io, $entityManager);
+        $result = $this->callProtectedMethod($command, 'askConnectionId', [$input, $io, $entityManager]);
         $this->assertEquals(1, $result);
     }
-    
+
     public function testResolveTwoConnectionsSuccess(): void
     {
         $entityManager = $this->createMock(EntityManagerInterface::class);
@@ -151,14 +160,9 @@ class BaseCommandTest extends TestCase
             ->withConsecutive([1], [2])
             ->willReturnOnConsecutiveCalls($databaseAccess1, $databaseAccess2);
             
-        $command = new class extends BaseCommand {
-            protected function execute(InputInterface $input, OutputInterface $output): int
-            {
-                return 0;
-            }
-        };
+        $command = $this->getCommandInstance();
         
-        $result = $command->resolveTwoConnections($input, $io);
+        $result = $this->callProtectedMethod($command, 'resolveTwoConnections', [$input, $io]);
         $this->assertIsArray($result);
         $this->assertCount(2, $result);
         $this->assertEquals($databaseAccess1, $result[0]);

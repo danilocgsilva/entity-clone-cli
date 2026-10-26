@@ -9,10 +9,12 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Question\Question;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\Command\RegisterConnectionCommand;
+use Danilocgsilva\EntityCloneCli\Helpers;
 
 class RegisterConnectionCommandTest extends TestCase
 {
@@ -21,50 +23,60 @@ class RegisterConnectionCommandTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $repository = $this->createMock(EntityRepository::class);
         
-        // Mock the EntityManager to return our repository
         $entityManager->expects($this->once())
             ->method('getRepository')
             ->with(DatabaseAccess::class)
             ->willReturn($repository);
             
-        // Mock the persist and flush methods
         $entityManager->expects($this->once())
             ->method('persist');
             
         $entityManager->expects($this->once())
             ->method('flush');
-            
-        // Mock input/output
+        
+        $databaseAccess = new DatabaseAccess();
+        $databaseAccess->setId(1);
+        $repository->expects($this->once())
+            ->method('persist');
+        
         $input = $this->createMock(InputInterface::class);
         $output = $this->createMock(OutputInterface::class);
         $io = $this->createMock(SymfonyStyle::class);
         $questionHelper = $this->createMock(QuestionHelper::class);
         
-        // Mock helper methods
-        $input->expects($this->exactly(6))
-            ->method('getOption')
-            ->willReturnMap([
-                ['connection-name', 'Test Connection'],
-                ['host', 'localhost'],
-                ['user', 'testuser'],
-                ['database-name', 'testdb'],
-                ['port', '3306'],
-                ['password', 'testpass']
-            ]);
-            
         // Mock the helper to return our test values
-        $questionHelper->expects($this->never())
-            ->method('ask');
-            
+        $questionHelper->expects($this->exactly(6))
+            ->method('ask')
+            ->withConsecutive(
+                [$this->isInstanceOf(Question::class), $input, $output],
+                [$this->isInstanceOf(Question::class), $input, $output],
+                [$this->isInstanceOf(Question::class), $input, $output],
+                [$this->isInstanceOf(Question::class), $input, $output],
+                [$this->isInstanceOf(Question::class), $input, $output],
+                [$this->isInstanceOf(Question::class), $input, $output]
+            )
+            ->willReturnOnConsecutiveCalls(
+                'Test Connection',
+                'localhost',
+                'testuser',
+                'testdb',
+                'testpass',
+                '3306'
+            );
+        
+        // Mock Helpers::createEntityManager() to return our mock
+        $this->mockStaticMethod(Helpers::class, 'createEntityManager', $entityManager);
+        
         $command = new RegisterConnectionCommand();
         
-        // We'll need to manually inject the helper for this specific case
-        // This is a limitation in how we're testing - normally you'd use proper dependency injection
+        // Set the helper on the command
+        $command->setHelperSet(new \Symfony\Component\Console\Helper\HelperSet([
+            'question' => $questionHelper
+        ]));
         
-        // Since we can't easily test the interactive parts without mocking more complex structures,
-        // we'll focus on ensuring the command structure and logic works properly.
+        $result = $command->run([$input, $output], $io);
         
-        $this->assertTrue(true); // Just ensure it doesn't crash
+        $this->assertEquals(0, $result);
     }
     
     public function testExecuteWithEmptyName(): void
@@ -72,16 +84,30 @@ class RegisterConnectionCommandTest extends TestCase
         $input = $this->createMock(InputInterface::class);
         $output = $this->createMock(OutputInterface::class);
         $io = $this->createMock(SymfonyStyle::class);
+        $questionHelper = $this->createMock(QuestionHelper::class);
         
-        // Mock the input to return empty name
-        $input->expects($this->once())
-            ->method('getOption')
-            ->with('connection-name')
+        // Mock the helper to return empty name
+        $questionHelper->expects($this->once())
+            ->method('ask')
             ->willReturn('');
             
         $command = new RegisterConnectionCommand();
+        $command->setHelperSet(new \Symfony\Component\Console\Helper\HelperSet([
+            'question' => $questionHelper
+        ]));
         
-        // This would normally exit with FAILURE, but we can't easily test that without more complex mocking
-        $this->assertTrue(true); // Placeholder for actual behavior testing
+        $result = $command->run([$input, $output], $io);
+        
+        $this->assertEquals(1, $result);
+    }
+    
+    private function mockStaticMethod(string $class, string $method, mixed $returnValue): void
+    {
+        $reflection = new \ReflectionClass($class);
+        $originalMethod = $reflection->getMethod($method);
+        $originalMethod->setAccessible(true);
+        
+        $mock = $this->createMock($class);
+        $originalMethod->invoke(null);
     }
 }

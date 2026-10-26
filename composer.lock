@@ -12,7 +12,7 @@
             "dist": {
                 "type": "path",
                 "url": "../entity-clone",
-                "reference": "a889e5275554385b6eb2a33fbd3576f71ef8ac6b"
+                "reference": "9145ea447aade19d37a921c514a826e64de29a1f"
             },
             "require": {
                 "doctrine/dbal": "^4.4",
