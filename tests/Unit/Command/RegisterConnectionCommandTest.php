@@ -21,8 +21,8 @@ class RegisterConnectionCommandTest extends TestCase
 {
     public function testExecuteSuccess(): void
     {
-        // Use partial mock for EntityManagerInterface (persist is final)
-        $entityManager = $this->createPartialMock(EntityManagerInterface::class, ['getRepository']);
+        // Use full mock instead of partial mock for EntityManagerInterface
+        $entityManager = $this->createMock(EntityManagerInterface::class);
         $repository = $this->createMock(EntityRepository::class);
         
         $entityManager->expects($this->once())

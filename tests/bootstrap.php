@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// Mock environment for testing
-putenv('APP_ENV=test');
-putenv('DB_HOST=localhost');
-putenv('DB_PORT=3306');
-putenv('DB_NAME_TEST=test_db');
-putenv('DB_USER=test_user');
-putenv('DB_PASSWORD=test_pass');
+$testEnv = getenv('APP_ENV');
+$dbHost = getenv('DB_HOST');
+$dbPort = getenv('DB_PORT');
+$dbTestDatabase = getenv('DB_NAME_TEST');
+$dbUser = getenv('DB_USER');
+$dbPassword = getenv('DB_PASSWORD');
+
+putenv("APP_ENV={$testEnv}");
+putenv("DB_HOST={$dbHost}");
+putenv("DB_PORT={$dbPort}");
+putenv("DB_NAME_TEST={$dbTestDatabase}");
+putenv("DB_USER={$dbUser}");
+putenv("DB_PASSWORD={$dbPassword}");

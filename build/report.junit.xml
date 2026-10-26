@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="/home/phpe/entity-clone-cli/phpunit.xml.dist" tests="11" assertions="24" errors="1" failures="1" skipped="0" time="0.073825">
+    <testsuite name="Unit Tests" tests="10" assertions="23" errors="1" failures="1" skipped="0" time="0.073564">
+      <testsuite name="Tests\Unit\Command\BaseCommandTest" file="/home/phpe/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" tests="5" assertions="14" errors="0" failures="1" skipped="0" time="0.061716">
+        <testcase name="testRequireOptionWithProvidedValue" file="/home/phpe/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="38" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="2" time="0.009276"/>
+        <testcase name="testRequireOptionByNumberWithInvalidSelection" file="/home/phpe/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="80" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="3" time="0.001169"/>
+        <testcase name="testAskConnectionIdWithProvidedValue" file="/home/phpe/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="106" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="3" time="0.005591"/>
+        <testcase name="testRequireOptionByNumberWithValidSelection" file="/home/phpe/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="54" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="3" time="0.000156"/>
+        <testcase name="testResolveTwoConnectionsSuccess" file="/home/phpe/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="132" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="3" time="0.045524">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">Tests\Unit\Command\BaseCommandTest::testResolveTwoConnectionsSuccess
+Failed asserting that null is of type array.
+
+/home/phpe/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php:178</failure>
+        </testcase>
+      </testsuite>
+      <testsuite name="Tests\Unit\Command\RegisterConnectionCommandTest" file="/home/phpe/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php" tests="2" assertions="2" errors="1" failures="0" skipped="0" time="0.009444">
+        <testcase name="testExecuteSuccess" file="/home/phpe/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php" line="22" class="Tests\Unit\Command\RegisterConnectionCommandTest" classname="Tests.Unit.Command.RegisterConnectionCommandTest" assertions="0" time="0.005425">
+          <error type="TypeError">Tests\Unit\Command\RegisterConnectionCommandTest::testExecuteSuccess
+TypeError: Tests\Unit\Command\RegisterConnectionCommandTest::{closure:Tests\Unit\Command\RegisterConnectionCommandTest::testExecuteSuccess():53}(): Argument #1 ($question) must be of type Symfony\Component\Console\Question\Question, MockObject_InputInterface_c7e63412 given, called in /home/phpe/entity-clone-cli/vendor/phpunit/phpunit/src/Framework/MockObject/Runtime/Stub/ReturnCallback.php on line 34
+
+/home/phpe/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php:53
+/home/phpe/entity-clone-cli/src/Command/RegisterConnectionCommand.php:30
+/home/phpe/entity-clone-cli/vendor/symfony/console/Command/Command.php:285
+/home/phpe/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php:77</error>
+        </testcase>
+        <testcase name="testExecuteWithEmptyName" file="/home/phpe/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php" line="82" class="Tests\Unit\Command\RegisterConnectionCommandTest" classname="Tests.Unit.Command.RegisterConnectionCommandTest" assertions="2" time="0.004019"/>
+      </testsuite>
+      <testsuite name="Tests\Unit\HelpersTest" file="/home/phpe/entity-clone-cli/tests/Unit/HelpersTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000991">
+        <testcase name="testCreateEntityManager" file="/home/phpe/entity-clone-cli/tests/Unit/HelpersTest.php" line="14" class="Tests\Unit\HelpersTest" classname="Tests.Unit.HelpersTest" assertions="1" time="0.000991"/>
+      </testsuite>
+      <testsuite name="Tests\Unit\DatabaseConnectionListerTest" file="/home/phpe/entity-clone-cli/tests/Unit/DatabaseConnectionListerTest.php" tests="2" assertions="6" errors="0" failures="0" skipped="0" time="0.001413">
+        <testcase name="testListConnectionsEmpty" file="/home/phpe/entity-clone-cli/tests/Unit/DatabaseConnectionListerTest.php" line="16" class="Tests\Unit\DatabaseConnectionListerTest" classname="Tests.Unit.DatabaseConnectionListerTest" assertions="3" time="0.000911"/>
+        <testcase name="testListConnectionsWithData" file="/home/phpe/entity-clone-cli/tests/Unit/DatabaseConnectionListerTest.php" line="39" class="Tests\Unit\DatabaseConnectionListerTest" classname="Tests.Unit.DatabaseConnectionListerTest" assertions="3" time="0.000502"/>
+      </testsuite>
+    </testsuite>
+    <testsuite name="Integration Tests" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000261">
+      <testsuite name="Tests\Integration\DatabaseConnectionListerIntegrationTest" file="/home/phpe/entity-clone-cli/tests/Integration/DatabaseConnectionListerIntegrationTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000261">
+        <testcase name="testListConnectionsIntegration" file="/home/phpe/entity-clone-cli/tests/Integration/DatabaseConnectionListerIntegrationTest.php" line="15" class="Tests\Integration\DatabaseConnectionListerIntegrationTest" classname="Tests.Integration.DatabaseConnectionListerIntegrationTest" assertions="1" time="0.000261"/>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>
