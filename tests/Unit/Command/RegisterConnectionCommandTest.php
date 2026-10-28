@@ -14,8 +14,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\Command\RegisterConnectionCommand;
-// Use a different strategy for static mocking (see note below)
-// use ReflectionClass; 
+use ReflectionClass; 
+use Danilocgsilva\EntityClone\Helpers;
 
 class RegisterConnectionCommandTest extends TestCase
 {
