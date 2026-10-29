@@ -3,3 +3,4 @@ vendor/**/*
 .vscode
 .phpunit.result.cache
 phpunit.xml
+build/report.junit.xml

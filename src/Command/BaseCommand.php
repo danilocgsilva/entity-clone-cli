@@ -13,6 +13,11 @@ use Danilocgsilva\EntityCloneCli\Helpers;
 
 abstract class BaseCommand extends Command
 {
+    protected function createEntityManager(): EntityManagerInterface
+    {
+        return Helpers::createEntityManager();
+    }
+
     protected function requireOption(InputInterface $input, SymfonyStyle $io, string $option, string $question): ?string
     {
         $value = $input->getOption($option);
@@ -155,7 +160,7 @@ abstract class BaseCommand extends Command
      */
     protected function resolveTwoConnections(InputInterface $input, SymfonyStyle $io): ?array
     {
-        $entityManager = Helpers::createEntityManager();
+        $entityManager = $this->createEntityManager();
         $repository    = $entityManager->getRepository(DatabaseAccess::class);
 
         $id1 = (int) $input->getOption('connection-id-1');

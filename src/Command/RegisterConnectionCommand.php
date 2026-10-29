@@ -80,7 +80,7 @@ class RegisterConnectionCommand extends BaseCommand
             'Port: <comment>' . $port . '</comment>',
         ]);
 
-        $entityManager = Helpers::createEntityManager();
+        $entityManager = $this->createEntityManager();
 
         $databaseAccess = new DatabaseAccess()
             ->setName($connectionName)
