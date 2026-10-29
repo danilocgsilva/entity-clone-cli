@@ -39,7 +39,6 @@ class BaseCommandTest extends TestCase
     {
         $reflection = new \ReflectionClass($command);
         $methodReflection = $reflection->getMethod($method);
-        $methodReflection->setAccessible(true);
         return $methodReflection->invokeArgs($command, $arguments);
     }
 
