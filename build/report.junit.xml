@@ -1,53 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-  <testsuite name="/home/phpe/entity_clone_app/entity-clone-cli/phpunit.xml" tests="11" assertions="24" errors="1" failures="1" skipped="0" time="0.145623">
-    <testsuite name="Unit Tests" tests="10" assertions="23" errors="1" failures="1" skipped="0" time="0.145364">
-      <testsuite name="Tests\Unit\Command\BaseCommandTest" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" tests="5" assertions="16" errors="0" failures="1" skipped="0" time="0.131309">
-        <testcase name="testRequireOptionWithProvidedValue" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="38" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="2" time="0.030303"/>
-        <testcase name="testRequireOptionByNumberWithInvalidSelection" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="80" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="3" time="0.001502"/>
-        <testcase name="testAskConnectionIdWithProvidedValue" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="106" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="3" time="0.009181"/>
-        <testcase name="testRequireOptionByNumberWithValidSelection" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="54" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="3" time="0.000231"/>
-        <testcase name="testResolveTwoConnectionsSuccess" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="132" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="5" time="0.090091">
-          <failure type="PHPUnit\Framework\ExpectationFailedException">Tests\Unit\Command\BaseCommandTest::testResolveTwoConnectionsSuccess
-Failed asserting that two objects are equal.
---- Expected
-+++ Actual
-@@ @@
- Danilocgsilva\EntityClone\Entities\DatabaseAccess Object (
-     'id' =&gt; 1
--    'name' =&gt; 'Connection 1'
-+    'name' =&gt; 'homologacao'
-+    'host' =&gt; '10.88.136.67'
-+    'user' =&gt; 'DB_SUP'
-+    'password' =&gt; 'F72t0k5x'
-+    'databaseName' =&gt; null
-+    'port' =&gt; 3306
- )
+  <testsuite name="/home/phpe/entity-clone-cli/phpunit.xml.dist" tests="1" assertions="0" errors="1" failures="0" skipped="0" time="0.015801">
+    <testsuite name="Unit Tests" tests="1" assertions="0" errors="1" failures="0" skipped="0" time="0.015801">
+      <testsuite name="Tests\Unit\Command\BaseCommandTest" file="/home/phpe/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" tests="1" assertions="0" errors="1" failures="0" skipped="0" time="0.015801">
+        <testcase name="testAskConnectionIdWithProvidedValue" file="/home/phpe/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php" line="112" class="Tests\Unit\Command\BaseCommandTest" classname="Tests.Unit.Command.BaseCommandTest" assertions="0" time="0.015801">
+          <error type="ArgumentCountError">Tests\Unit\Command\BaseCommandTest::testAskConnectionIdWithProvidedValue
+ArgumentCountError: Too few arguments to function Danilocgsilva\EntityCloneCli\Command\BaseCommand::askConnectionId(), 2 passed and exactly 3 expected
 
-/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php:180</failure>
+/home/phpe/entity-clone-cli/src/Command/BaseCommand.php:128
+/home/phpe/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php:40
+/home/phpe/entity-clone-cli/tests/Unit/Command/BaseCommandTest.php:125</error>
         </testcase>
-      </testsuite>
-      <testsuite name="Tests\Unit\Command\RegisterConnectionCommandTest" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php" tests="2" assertions="0" errors="1" failures="0" skipped="0" time="0.011824">
-        <testcase name="testExecuteSuccess" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php" line="22" class="Tests\Unit\Command\RegisterConnectionCommandTest" classname="Tests.Unit.Command.RegisterConnectionCommandTest" assertions="0" time="0.011705">
-          <error type="Error">Tests\Unit\Command\RegisterConnectionCommandTest::testExecuteSuccess
-Error: Class "Tests\Unit\Command\ReflectionClass" not found
-
-/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php:107
-/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php:81</error>
-        </testcase>
-        <testcase name="testExecuteWithEmptyName" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/Command/RegisterConnectionCommandTest.php" line="121" class="Tests\Unit\Command\RegisterConnectionCommandTest" classname="Tests.Unit.Command.RegisterConnectionCommandTest" assertions="0" time="0.000118"/>
-      </testsuite>
-      <testsuite name="Tests\Unit\DatabaseConnectionListerTest" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/DatabaseConnectionListerTest.php" tests="2" assertions="6" errors="0" failures="0" skipped="0" time="0.000857">
-        <testcase name="testListConnectionsWithData" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/DatabaseConnectionListerTest.php" line="39" class="Tests\Unit\DatabaseConnectionListerTest" classname="Tests.Unit.DatabaseConnectionListerTest" assertions="3" time="0.000580"/>
-        <testcase name="testListConnectionsEmpty" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/DatabaseConnectionListerTest.php" line="16" class="Tests\Unit\DatabaseConnectionListerTest" classname="Tests.Unit.DatabaseConnectionListerTest" assertions="3" time="0.000278"/>
-      </testsuite>
-      <testsuite name="Tests\Unit\HelpersTest" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/HelpersTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.001374">
-        <testcase name="testCreateEntityManager" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Unit/HelpersTest.php" line="14" class="Tests\Unit\HelpersTest" classname="Tests.Unit.HelpersTest" assertions="1" time="0.001374"/>
-      </testsuite>
-    </testsuite>
-    <testsuite name="Integration Tests" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000259">
-      <testsuite name="Tests\Integration\DatabaseConnectionListerIntegrationTest" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Integration/DatabaseConnectionListerIntegrationTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.000259">
-        <testcase name="testListConnectionsIntegration" file="/home/phpe/entity_clone_app/entity-clone-cli/tests/Integration/DatabaseConnectionListerIntegrationTest.php" line="15" class="Tests\Integration\DatabaseConnectionListerIntegrationTest" classname="Tests.Integration.DatabaseConnectionListerIntegrationTest" assertions="1" time="0.000259"/>
       </testsuite>
     </testsuite>
   </testsuite>
