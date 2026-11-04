@@ -4,3 +4,4 @@ vendor/**/*
 .phpunit.result.cache
 phpunit.xml
 build/report.junit.xml
+.phpunit.cache/*
