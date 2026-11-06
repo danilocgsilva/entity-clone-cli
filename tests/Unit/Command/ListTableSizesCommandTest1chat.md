@@ -1,4 +1,11 @@
+## Model
+
+qwen3-coder:30b
+
+---
+
 ## Question
+
 ---
 
 Look to my application directory tree:
