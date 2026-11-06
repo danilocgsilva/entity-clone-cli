@@ -50,7 +50,7 @@ class ListTableSizesCommand extends BaseCommand
         try {
             $this->connectionLister->listConnections($io);
 
-            $entityManager = Helpers::createEntityManager();
+            $entityManager = $this->createEntityManager();
             $repository = $entityManager->getRepository(DatabaseAccess::class);
 
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID:');
