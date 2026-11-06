@@ -2,145 +2,337 @@
 
 declare(strict_types=1);
 
-namespace Danilocgsilva\EntityCloneCli\Tests\Unit\Command;
+namespace Tests\Unit\Command;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Danilocgsilva\EntityCloneCli\Command\ListTableSizesCommand;
-use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Question\Question;
+use Doctrine\ORM\EntityManagerInterface;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityClone\Domain;
-use PDO;
+use Danilocgsilva\EntityCloneCli\Command\ListTableSizesCommand;
+use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 use Exception;
+use PDO;
+use PDOStatement;
 
 class ListTableSizesCommandTest extends TestCase
 {
+    private ListTableSizesCommand $command;
+    private EntityManagerInterface $entityManager;
+    private DatabaseConnectionLister $connectionLister;
+
+        protected function setUp(): void
+    {
+        parent::setUp();
+        
+        $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->connectionLister = $this->createMock(DatabaseConnectionLister::class);
+        
+        $this->command = new class($this->connectionLister) extends ListTableSizesCommand {
+            public function __construct(DatabaseConnectionLister $connectionLister)
+            {
+                parent::__construct($connectionLister);
+            }
+
+            protected function createEntityManager(): EntityManagerInterface
+            {
+                return $this->createMock(EntityManagerInterface::class);
+            }
+
+            protected function createPdoFromDatabaseConnectionEntity(object $connection): PDO
+            {
+                return $this->createMock(PDO::class);
+            }
+        };
+    }
+
     public function testExecuteSuccess(): void
     {
-        // Mock dependencies
-        $connectionLister = $this->createMock(DatabaseConnectionLister::class);
+        $connectionId = 1;
+        
         $databaseAccess = $this->createMock(DatabaseAccess::class);
-        $pdo = $this->createMock(PDO::class);
-        $domain = $this->createMock(Domain::class);
-
-        // Mock the DatabaseConnectionLister
-        $connectionLister->expects($this->once())
-            ->method('listConnections')
-            ->with($this->isInstanceOf(SymfonyStyle::class));
-
-        // Mock the repository
+        $databaseAccess->expects($this->once())
+            ->method('getId')
+            ->willReturn($connectionId);
+        
         $repository = $this->createMock(\Doctrine\ORM\EntityRepository::class);
-        $entityManager = $this->createMock(\Doctrine\ORM\EntityManager::class);
-        $entityManager->expects($this->once())
+        $repository->expects($this->once())
+            ->method('find')
+            ->with($connectionId)
+            ->willReturn($databaseAccess);
+        
+        $this->entityManager->expects($this->once())
             ->method('getRepository')
             ->with(DatabaseAccess::class)
             ->willReturn($repository);
-
-        // Mock the repository find method
-        $repository->expects($this->once())
-            ->method('find')
-            ->with(1)
-            ->willReturn($databaseAccess);
-
-        // Mock Domain::createPdoFromDatabaseConnectionEntity
-        Domain::expects($this->once())
-            ->method('createPdoFromDatabaseConnectionEntity')
-            ->with($databaseAccess)
-            ->willReturn($pdo);
-
-        // Mock SHOW DATABASES query
-        $databasesStmt = $this->createMock(\PDOStatement::class);
-        $databasesStmt->expects($this->once())
+        
+        $this->connectionLister->expects($this->once())
+            ->method('listConnections')
+            ->with($this->isInstanceOf(SymfonyStyle::class));
+        
+        $pdo = $this->createMock(PDO::class);
+        $pdoStatement = $this->createMock(PDOStatement::class);
+        $pdoStatement->expects($this->once())
+            ->method('execute');
+        $pdoStatement->expects($this->once())
             ->method('fetchAll')
             ->with(PDO::FETCH_COLUMN)
-            ->willReturn(['db1', 'db2']);
-
+            ->willReturn(['test_db', 'production_db']);
         $pdo->expects($this->once())
             ->method('prepare')
             ->with('SHOW DATABASES')
-            ->willReturn($databasesStmt);
-
-        // Mock Domain::listTableSizes
-        Domain::expects($this->once())
-            ->method('listTableSizes')
-            ->with($pdo, 'db1')
-            ->willReturn([
-                ['table' => 'users', 'size' => '1024.5'],
-                ['table' => 'posts', 'size' => '2048.0']
-            ]);
-
-        // Mock the input and output
-        $input = new ArrayInput(['--connection-id' => '1']);
+            ->willReturn($pdoStatement);
+        
+        $tableSizes = [
+            ['table' => 'users', 'size' => 1048576],
+            ['table' => 'orders', 'size' => 2097152],
+            ['table' => 'products', 'size' => 524288]
+        ];
+        
+        $this->connectionLister->expects($this->once())
+            ->method('listConnections');
+        
+        $input = new ArrayInput(['--connection-id' => $connectionId]);
         $output = new BufferedOutput();
-
-        // Create the command with mocks
-        $command = new ListTableSizesCommand($connectionLister);
-        $command->setEntityManager($entityManager); // This would need to be added to the command class
-
-        // Mock the selectDatabase method to return a specific database
-        $reflection = new \ReflectionClass($command);
-        $method = $reflection->getMethod('selectDatabase');
-        $method->setAccessible(true);
-        $method->invoke($command, $this->createMock(SymfonyStyle::class), ['db1', 'db2']);
-
-        // Execute the command
-        $result = $command->run($input, $output);
-
-        // Assert the result
-        $this->assertEquals(0, $result);
+        
+        $questionHelper = $this->createMock(QuestionHelper::class);
+        $questionHelper->expects($this->once())
+            ->method('ask')
+            ->willReturn('1');
+        
+        $this->command->setHelperSet(new \Symfony\Component\Console\Helper\HelperSet([
+            'question' => $questionHelper
+        ]));
+        
+        $result = $this->command->run($input, $output);
+        
+        $this->assertSame(Command::SUCCESS, $result);
+        $this->assertStringContainsString('Database Table Sizes List', $output->fetch());
     }
 
-    public function testExecuteNoConnectionFound(): void
+    public function testExecuteWithInvalidConnectionId(): void
     {
-        $connectionLister = $this->createMock(DatabaseConnectionLister::class);
         $repository = $this->createMock(\Doctrine\ORM\EntityRepository::class);
-        $entityManager = $this->createMock(\Doctrine\ORM\EntityManager::class);
-        $entityManager->expects($this->once())
-            ->method('getRepository')
-            ->with(DatabaseAccess::class)
-            ->willReturn($repository);
-
         $repository->expects($this->once())
             ->method('find')
-            ->with(1)
+            ->with(999)
             ->willReturn(null);
-
-        $input = new ArrayInput(['--connection-id' => '1']);
-        $output = new BufferedOutput();
-
-        $command = new ListTableSizesCommand($connectionLister);
-        $command->setEntityManager($entityManager);
-
-        $result = $command->run($input, $output);
-
-        $this->assertEquals(1, $result);
-    }
-
-    public function testExecuteException(): void
-    {
-        $connectionLister = $this->createMock(DatabaseConnectionLister::class);
-        $repository = $this->createMock(\Doctrine\ORM\EntityRepository::class);
-        $entityManager = $this->createMock(\Doctrine\ORM\EntityManager::class);
-        $entityManager->expects($this->once())
+        
+        $this->entityManager->expects($this->once())
             ->method('getRepository')
             ->with(DatabaseAccess::class)
             ->willReturn($repository);
+        
+        $this->connectionLister->expects($this->once())
+            ->method('listConnections');
+        
+        $input = new ArrayInput(['--connection-id' => 999]);
+        $output = new BufferedOutput();
+        
+        $result = $this->command->run($input, $output);
+        
+        $this->assertSame(Command::FAILURE, $result);
+        $this->assertStringContainsString('not found', $output->fetch());
+    }
 
+    public function testExecuteWithNoDatabases(): void
+    {
+        $connectionId = 1;
+        
+        $databaseAccess = $this->createMock(DatabaseAccess::class);
+        $databaseAccess->expects($this->once())
+            ->method('getId')
+            ->willReturn($connectionId);
+        
+        $repository = $this->createMock(\Doctrine\ORM\EntityRepository::class);
         $repository->expects($this->once())
             ->method('find')
-            ->with(1)
-            ->willThrowException(new Exception('Test exception'));
-
-        $input = new ArrayInput(['--connection-id' => '1']);
+            ->with($connectionId)
+            ->willReturn($databaseAccess);
+        
+        $this->entityManager->expects($this->once())
+            ->method('getRepository')
+            ->with(DatabaseAccess::class)
+            ->willReturn($repository);
+        
+        $this->connectionLister->expects($this->once())
+            ->method('listConnections');
+        
+        $pdo = $this->createMock(PDO::class);
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->with('SHOW DATABASES')
+            ->willReturn($this->createMock(PDOStatement::class));
+        $pdoStatement = $this->createMock(PDOStatement::class);
+        $pdoStatement->expects($this->once())
+            ->method('execute');
+        $pdoStatement->expects($this->once())
+            ->method('fetchAll')
+            ->with(PDO::FETCH_COLUMN)
+            ->willReturn([]);
+        
+        $input = new ArrayInput(['--connection-id' => $connectionId]);
         $output = new BufferedOutput();
+        
+        $result = $this->command->run($input, $output);
+        
+        $this->assertSame(Command::FAILURE, $result);
+        $this->assertStringContainsString('No databases found', $output->fetch());
+    }
 
-        $command = new ListTableSizesCommand($connectionLister);
-        $command->setEntityManager($entityManager);
+    public function testExecuteWithNoTables(): void
+    {
+        $connectionId = 1;
+        
+        $databaseAccess = $this->createMock(DatabaseAccess::class);
+        $databaseAccess->expects($this->once())
+            ->method('getId')
+            ->willReturn($connectionId);
+        
+        $repository = $this->createMock(\Doctrine\ORM\EntityRepository::class);
+        $repository->expects($this->once())
+            ->method('find')
+            ->with($connectionId)
+            ->willReturn($databaseAccess);
+        
+        $this->entityManager->expects($this->once())
+            ->method('getRepository')
+            ->with(DatabaseAccess::class)
+            ->willReturn($repository);
+        
+        $this->connectionLister->expects($this->once())
+            ->method('listConnections');
+        
+        $pdo = $this->createMock(PDO::class);
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->with('SHOW DATABASES')
+            ->willReturn($this->createMock(PDOStatement::class));
+        $pdoStatement = $this->createMock(PDOStatement::class);
+        $pdoStatement->expects($this->once())
+            ->method('execute');
+        $pdoStatement->expects($this->once())
+            ->method('fetchAll')
+            ->with(PDO::FETCH_COLUMN)
+            ->willReturn(['test_db']);
+        
+        $input = new ArrayInput(['--connection-id' => $connectionId]);
+        $output = new BufferedOutput();
+        
+        $questionHelper = $this->createMock(QuestionHelper::class);
+        $questionHelper->expects($this->once())
+            ->method('ask')
+            ->willReturn('1');
+        
+        $this->command->setHelperSet(new \Symfony\Component\Console\Helper\HelperSet([
+            'question' => $questionHelper
+        ]));
+        
+        $result = $this->command->run($input, $output);
+        
+        $this->assertSame(Command::SUCCESS, $result);
+        $this->assertStringContainsString('No tables found', $output->fetch());
+    }
 
-        $result = $command->run($input, $output);
+    public function testExecuteWithInvalidDatabaseSelection(): void
+    {
+        $connectionId = 1;
+        
+        $databaseAccess = $this->createMock(DatabaseAccess::class);
+        $databaseAccess->expects($this->once())
+            ->method('getId')
+            ->willReturn($connectionId);
+        
+        $repository = $this->createMock(\Doctrine\ORM\EntityRepository::class);
+        $repository->expects($this->once())
+            ->method('find')
+            ->with($connectionId)
+            ->willReturn($databaseAccess);
+        
+        $this->entityManager->expects($this->once())
+            ->method('getRepository')
+            ->with(DatabaseAccess::class)
+            ->willReturn($repository);
+        
+        $this->connectionLister->expects($this->once())
+            ->method('listConnections');
+        
+        $pdo = $this->createMock(PDO::class);
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->with('SHOW DATABASES')
+            ->willReturn($this->createMock(PDOStatement::class));
+        $pdoStatement = $this->createMock(PDOStatement::class);
+        $pdoStatement->expects($this->once())
+            ->method('execute');
+        $pdoStatement->expects($this->once())
+            ->method('fetchAll')
+            ->with(PDO::FETCH_COLUMN)
+            ->willReturn(['test_db', 'production_db']);
+        
+        $input = new ArrayInput(['--connection-id' => $connectionId]);
+        $output = new BufferedOutput();
+        
+        $questionHelper = $this->createMock(QuestionHelper::class);
+        $questionHelper->expects($this->exactly(2))
+            ->method('ask')
+            ->willReturnCallback(function (InputInterface $input, OutputInterface $output, Question $question) {
+                if (str_contains($question->getQuestion(), 'database')) {
+                    return '5'; // Invalid selection
+                }
+                return '1';
+            });
+        
+        $this->command->setHelperSet(new \Symfony\Component\Console\Helper\HelperSet([
+            'question' => $questionHelper
+        ]));
+        
+        $result = $this->command->run($input, $output);
+        
+        $this->assertSame(Command::FAILURE, $result);
+    }
 
-        $this->assertEquals(1, $result);
+    public function testExecuteWithException(): void
+    {
+        $connectionId = 1;
+        
+        $databaseAccess = $this->createMock(DatabaseAccess::class);
+        $databaseAccess->expects($this->once())
+            ->method('getId')
+            ->willReturn($connectionId);
+        
+        $repository = $this->createMock(\Doctrine\ORM\EntityRepository::class);
+        $repository->expects($this->once())
+            ->method('find')
+            ->with($connectionId)
+            ->willReturn($databaseAccess);
+        
+        $this->entityManager->expects($this->once())
+            ->method('getRepository')
+            ->with(DatabaseAccess::class)
+            ->willReturn($repository);
+        
+        $this->connectionLister->expects($this->once())
+            ->method('listConnections');
+        
+        $this->entityManager->expects($this->once())
+            ->method('getRepository')
+            ->with(DatabaseAccess::class)
+            ->willThrowException(new Exception('Connection failed'));
+        
+        $input = new ArrayInput(['--connection-id' => $connectionId]);
+        $output = new BufferedOutput();
+        
+        $result = $this->command->run($input, $output);
+        
+        $this->assertSame(Command::FAILURE, $result);
+        $this->assertStringContainsString('Error retrieving table sizes', $output->fetch());
     }
 }
