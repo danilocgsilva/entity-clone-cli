@@ -17,11 +17,11 @@ abstract class BaseDataCollector
     protected SymfonyStyle $io;
     protected EntityManagerInterface $entityManager;
 
-    public function __construct(InputInterface $input, SymfonyStyle $io)
+    public function __construct(InputInterface $input, SymfonyStyle $io, ?EntityManagerInterface $entityManager = null)
     {
         $this->input = $input;
         $this->io = $io;
-        $this->entityManager = Helpers::createEntityManager();
+        $this->entityManager = $entityManager ?? Helpers::createEntityManager();
     }
 
     protected function requireOption(string $option, string $question): ?string
