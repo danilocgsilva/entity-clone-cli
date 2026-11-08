@@ -51,7 +51,7 @@ class DeleteConnectionCommand extends BaseCommand
             $connectionId = (int) $this->requireOption($input, $io, 'connection-id', 'Please enter the database connection ID to delete:');
             if (!$connectionId) return Command::FAILURE;
 
-            $entityManager = Helpers::createEntityManager();
+            $entityManager = $this->createEntityManager();
 
             $databaseAccess = $entityManager->getRepository(DatabaseAccess::class)->find($connectionId);
             
