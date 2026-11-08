@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Danilocgsilva\EntityClone\Entities\DatabaseAccess;
 use Danilocgsilva\EntityCloneCli\Command\DeleteConnectionCommand;
+use Danilocgsilva\EntityCloneCli\Command\DataCollectors\DeleteConnectionDataCollector;
 use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
 
 class DeleteConnectionCommandTest extends TestCase
@@ -39,9 +40,21 @@ class DeleteConnectionCommandTest extends TestCase
                 parent::__construct($connectionLister);
             }
 
-            protected function createEntityManager(): EntityManagerInterface
-            {
-                return $this->em;
+            protected function createDataCollector(
+                \Symfony\Component\Console\Input\InputInterface $input,
+                \Symfony\Component\Console\Style\SymfonyStyle $io
+            ): DeleteConnectionDataCollector {
+                $em = $this->em;
+                return new class($input, $io, $em) extends DeleteConnectionDataCollector {
+                    public function __construct(
+                        \Symfony\Component\Console\Input\InputInterface $input,
+                        \Symfony\Component\Console\Style\SymfonyStyle $io,
+                        private EntityManagerInterface $injectedEm
+                    ) {
+                        parent::__construct($input, $io);
+                        $this->entityManager = $this->injectedEm;
+                    }
+                };
             }
         };
 
@@ -88,12 +101,12 @@ class DeleteConnectionCommandTest extends TestCase
             ->with(1)
             ->willReturn($databaseAccess);
 
+        $this->entityManager->expects($this->once())->method('remove')->with($databaseAccess);
+        $this->entityManager->expects($this->once())->method('flush');
+
         $questionHelper = $this->createMock(QuestionHelper::class);
         $questionHelper->method('ask')->willReturn(true);
         $this->command->setHelperSet(new HelperSet(['question' => $questionHelper]));
-
-        $this->entityManager->expects($this->once())->method('remove')->with($databaseAccess);
-        $this->entityManager->expects($this->once())->method('flush');
 
         $input = new ArrayInput(['--connection-id' => '1'], $this->command->getDefinition());
 
