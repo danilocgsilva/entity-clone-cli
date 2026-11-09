@@ -6,7 +6,6 @@ namespace Danilocgsilva\EntityCloneCli\Tests\Unit\Command;
 
 use Danilocgsilva\EntityCloneCli\Command\CloneRecordCommand;
 use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -50,35 +49,40 @@ class CloneRecordCommandTest extends TestCase
         $sourcePdo = \Mockery::mock(\PDO::class);
         $targetPdo = \Mockery::mock(\PDO::class);
 
+        // Domain is static – use loose matchers
         $domain = \Mockery::mock('alias:Danilocgsilva\EntityClone\Domain');
         $domain->shouldReceive('getPdoFromDatabaseAccessId')
-            ->with('src-conn', \Mockery::any())
-            ->andReturn($sourcePdo);
-        $domain->shouldReceive('getPdoFromDatabaseAccessId')
-            ->with('tgt-conn', \Mockery::any())
-            ->andReturn($targetPdo);
+            ->andReturnUsing(fn(string $id, $em) => $id === 'src-conn' ? $sourcePdo : $targetPdo);
 
-        $domain->shouldReceive('listDatabases')->with($sourcePdo, true)->andReturn(['db_src']);
-        $domain->shouldReceive('listDatabases')->with($targetPdo, true)->andReturn(['db_tgt']);
-        $domain->shouldReceive('listTables')->with($sourcePdo, 'db_src')->andReturn(['users']);
+        $domain->shouldReceive('listDatabases')
+            ->andReturnUsing(fn($pdo, bool $flag) => $pdo === $sourcePdo ? ['db_src'] : ['db_tgt']);
+
+        $domain->shouldReceive('listTables')
+            ->with($sourcePdo, 'db_src')
+            ->andReturn(['users']);
+
         $domain->shouldReceive('cloneRecordSecure')
             ->with($sourcePdo, $targetPdo, 'users', '42')
             ->andReturnTrue();
 
-        // BaseDataCollector creates the EM via Helpers::createEntityManager()
-        $em = \Mockery::mock(EntityManagerInterface::class);
-        $helpers = \Mockery::mock('alias:Danilocgsilva\EntityCloneCli\Helpers');
-        $helpers->shouldReceive('createEntityManager')->andReturn($em);
-
-        // CloneRecordDataCollector asks interactively for the two connection ids
-        $this->tester->setInputs(['src-conn', 'tgt-conn']);
+        // Make the collector return a deterministic data set and skip the interactive asks
+        $collector = \Mockery::mock('alias:Danilocgsilva\EntityCloneCli\Command\DataCollectors\CloneRecordDataCollector');
+        $collector->shouldReceive('__construct')->withAnyArgs()->andReturnNull();
+        $collector->shouldReceive('collect')->andReturn([
+            'sourceDatabaseName' => 'db_src',
+            'targetDatabaseName' => 'db_tgt',
+            'tableName'          => 'users',
+            'recordId'           => '42',
+            'sourceConnectionId' => 'src-conn',
+            'targetConnectionId' => 'tgt-conn',
+        ]);
 
         $this->tester->execute([
             '--source-database-name' => 'db_src',
             '--target-database-name' => 'db_tgt',
             '--table-name'           => 'users',
             '--record-id'            => '42',
-        ], ['interactive' => true]);
+        ], ['interactive' => false]);
 
         $output = $this->tester->getDisplay();
 
