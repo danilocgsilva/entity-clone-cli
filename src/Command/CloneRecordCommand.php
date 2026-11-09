@@ -14,6 +14,7 @@ use Danilocgsilva\EntityClone\Domain;
 use Danilocgsilva\EntityCloneCli\Helpers;
 use Danilocgsilva\EntityCloneCli\Command\DataCollectors\CloneRecordDataCollector;
 use Danilocgsilva\EntityCloneCli\DatabaseConnectionLister;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 
 #[AsCommand(
@@ -23,10 +24,12 @@ use Exception;
 class CloneRecordCommand extends BaseCommand
 {
     private DatabaseConnectionLister $connectionLister;
+    private ?EntityManagerInterface $entityManager;
 
-    public function __construct(DatabaseConnectionLister $connectionLister)
+    public function __construct(DatabaseConnectionLister $connectionLister, ?EntityManagerInterface $entityManager = null)
     {
         $this->connectionLister = $connectionLister;
+        $this->entityManager = $entityManager;
         parent::__construct();
     }
 
@@ -65,7 +68,8 @@ class CloneRecordCommand extends BaseCommand
         $io->title('Clone Database Record');
 
         try {
-            $dataCollector = new CloneRecordDataCollector($input, $io);
+            $em = $this->entityManager ?? Helpers::createEntityManager();
+            $dataCollector = $this->makeDataCollector($input, $io, $em);
             $data = $dataCollector->collect();
             
             if (!$data) {
@@ -83,28 +87,28 @@ class CloneRecordCommand extends BaseCommand
             $this->connectionLister->listConnections($io);
             $io->newLine();
 
-            $sourcePdo = Domain::getPdoFromDatabaseAccessId($sourceConnectionId, Helpers::createEntityManager());
-            $targetPdo = Domain::getPdoFromDatabaseAccessId($targetConnectionId, Helpers::createEntityManager());
+            $sourcePdo = $this->getPdoFromDatabaseAccessId($sourceConnectionId, $em);
+            $targetPdo = $this->getPdoFromDatabaseAccessId($targetConnectionId, $em);
 
-            $sourceDatabases = Domain::listDatabases($sourcePdo, true);
+            $sourceDatabases = $this->listDatabases($sourcePdo, true);
             if (!in_array($sourceDatabaseName, $sourceDatabases)) {
                 $io->error("Source database '{$sourceDatabaseName}' not found");
                 return Command::FAILURE;
             }
 
-            $targetDatabases = Domain::listDatabases($targetPdo, true);
+            $targetDatabases = $this->listDatabases($targetPdo, true);
             if (!in_array($targetDatabaseName, $targetDatabases)) {
                 $io->error("Target database '{$targetDatabaseName}' not found");
                 return Command::FAILURE;
             }
 
-            $sourceTables = Domain::listTables($sourcePdo, $sourceDatabaseName);
+            $sourceTables = $this->listTables($sourcePdo, $sourceDatabaseName);
             if (!in_array($tableName, $sourceTables)) {
                 $io->error("Table '{$tableName}' not found in database '{$sourceDatabaseName}'");
                 return Command::FAILURE;
             }
 
-            $success = Domain::cloneRecordSecure($sourcePdo, $targetPdo, $tableName, $recordId);
+            $success = $this->cloneRecordSecure($sourcePdo, $targetPdo, $tableName, $recordId);
 
             if ($success) {
                 $io->success("Record with ID {$recordId} cloned successfully from table '{$tableName}'");
@@ -118,5 +122,30 @@ class CloneRecordCommand extends BaseCommand
             $io->error('Error cloning record: ' . $e->getMessage());
             return Command::FAILURE;
         }
+    }
+
+    protected function makeDataCollector(InputInterface $input, SymfonyStyle $io, EntityManagerInterface $em): CloneRecordDataCollector
+    {
+        return new CloneRecordDataCollector($input, $io, $em);
+    }
+
+    protected function getPdoFromDatabaseAccessId(int $id, EntityManagerInterface $em): \PDO
+    {
+        return Domain::getPdoFromDatabaseAccessId($id, $em);
+    }
+
+    protected function listDatabases(\PDO $pdo, bool $excludeSystem): array
+    {
+        return Domain::listDatabases($pdo, $excludeSystem);
+    }
+
+    protected function listTables(\PDO $pdo, string $database): array
+    {
+        return Domain::listTables($pdo, $database);
+    }
+
+    protected function cloneRecordSecure(\PDO $source, \PDO $target, string $table, string|int $id): bool
+    {
+        return Domain::cloneRecordSecure($source, $target, $table, $id);
     }
 }

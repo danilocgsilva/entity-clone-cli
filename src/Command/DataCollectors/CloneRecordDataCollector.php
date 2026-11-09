@@ -58,8 +58,8 @@ class CloneRecordDataCollector extends BaseDataCollector
         
         foreach ($databaseAccesses as $dbAccess) {
             try {
-                $pdo = \Danilocgsilva\EntityClone\Domain::createPdoFromDatabaseConnectionEntity($dbAccess);
-                $databases = \Danilocgsilva\EntityClone\Domain::listDatabases($pdo, true);
+                $pdo = $this->createPdoFromDatabaseConnectionEntity($dbAccess);
+                $databases = $this->listDatabases($pdo, true);
                 
                 if (in_array($databaseName, $databases)) {
                     return $dbAccess->getId();
@@ -70,5 +70,15 @@ class CloneRecordDataCollector extends BaseDataCollector
         }
         
         return null;
+    }
+
+    protected function createPdoFromDatabaseConnectionEntity(DatabaseAccess $dbAccess): \PDO
+    {
+        return \Danilocgsilva\EntityClone\Domain::createPdoFromDatabaseConnectionEntity($dbAccess);
+    }
+
+    protected function listDatabases(\PDO $pdo, bool $excludeSystem): array
+    {
+        return \Danilocgsilva\EntityClone\Domain::listDatabases($pdo, $excludeSystem);
     }
 }
