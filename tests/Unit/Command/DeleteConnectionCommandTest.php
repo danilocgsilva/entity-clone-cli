@@ -49,10 +49,9 @@ class DeleteConnectionCommandTest extends TestCase
                     public function __construct(
                         \Symfony\Component\Console\Input\InputInterface $input,
                         \Symfony\Component\Console\Style\SymfonyStyle $io,
-                        private EntityManagerInterface $injectedEm
+                        EntityManagerInterface $em
                     ) {
-                        parent::__construct($input, $io);
-                        $this->entityManager = $this->injectedEm;
+                        parent::__construct($input, $io, $em);
                     }
                 };
             }
