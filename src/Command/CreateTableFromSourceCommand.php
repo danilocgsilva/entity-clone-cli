@@ -75,11 +75,9 @@ class CreateTableFromSourceCommand extends BaseCommand
             $io->warning("Table '{$tableName}' already exists in database '{$databaseName}'. No action taken.");
             return Command::SUCCESS;
         } catch (MissingTargetDatabase $e) {
-            var_dump(get_class($e)); // This will show you exactly what class is being thrown
             $io->error($e->getMessage());
             return Command::FAILURE;
         } catch (Exception $e) {
-            var_dump(get_class($e)); // This will show you exactly what class is being thrown
             $io->error("Error creating table: " . $e->getMessage());
             return Command::FAILURE;
         }
